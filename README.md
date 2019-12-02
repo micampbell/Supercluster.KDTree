@@ -5,7 +5,7 @@ structure and intention of this project has changed drastically from its origin.
 
 ## About the Project
 
-This is a KD-Tree that is optimized for machine learning applications, **however, it can used for less intensive purposes as well**. (In fact, I am writing this for my machine learning library [Supercluster](https://github.com/MathFerret1013/Supercluster)) In machine learning data-sets
+This is a KD-Tree that is optimized for machine learning applications, **however, it can used for less intensive purposes as well**. (In fact, I am writing this for my machine learning library [Supercluster](https://github.com/eric-regina/Supercluster)) In machine learning data-sets
  are often built, re-built, and built again. Also, in machine learning, algorithms need to be **fast** 
 for look ups but it is more acceptable to be slow for construction.
 Thus the tree bas been designed with this philosophy in mind. General characteristics are:
@@ -31,8 +31,8 @@ complicated than AVL or Red-Black trees. There do exist adaptive KD-Trees which 
 * **The code is unit tested and well documented.** Style-cop, unit-test, wiki tutorials and MSDN style docs. It's all here.
 
 **Documentation and Tutorial**:
-*  MSDN Style Documentation: http://mathferret1013.github.io/Supercluster.KDTree
-*  Wiki and Tutorials: https://github.com/MathFerret1013/Supercluster.KDTree/wiki
+*  MSDN Style Documentation: http://eric-regina.github.io/Supercluster.KDTree
+*  Wiki and Tutorials: https://github.com/eric-regina/Supercluster.KDTree/wiki
 *  Nuget Package: `Install-Package Supercluster.KDTree`
 
 #### Special Thanks
