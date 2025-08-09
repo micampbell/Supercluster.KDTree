@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-
-
-namespace KDTreeTests
+﻿namespace KDTreeTests
 {
-    using System.Linq;
-
     using Supercluster.KDTree;
+    using System.Linq;
 
     public static class Utilities
     {

@@ -1,0 +1,16 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+    <Project Path="WorkBench/WorkBench.csproj" />
+    <Project Path="WorkBench2.cs/WorkBench2.cs.csproj" />
+  </Folder>
+  <Project Path="KDTree.Benchmark/KDTree.Benchmark.csproj" />
+  <Project Path="KDTree/KDTree.csproj" />
+  <Project Path="KDTreeTests/KDTreeTests.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+</Solution>

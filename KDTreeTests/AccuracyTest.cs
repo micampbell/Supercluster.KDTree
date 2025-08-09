@@ -1,7 +1,4 @@
-﻿using KDTreeTests;
-
-using NUnit.Framework;
-
+﻿
 namespace KDTreeTests
 {
     using System.Linq;
