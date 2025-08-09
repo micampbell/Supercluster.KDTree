@@ -2,7 +2,7 @@
 // Copyright (c) Eric Regina. All rights reserved.
 // </copyright>
 
-namespace Supercluster.KDTree.Utilities
+namespace SuperClusterKDTree.Utilities
 {
     using System;
     using System.Runtime.CompilerServices;
@@ -10,7 +10,7 @@ namespace Supercluster.KDTree.Utilities
     /// <summary>
     /// Contains extension methods for <see cref="BoundedPriorityList{TElement,TPriority}"/> class.
     /// </summary>
-    public static class BoundedPriorityListExtensions
+    internal static class BoundedPriorityListExtensions
     {
         /// <summary>
         /// Takes a <see cref="BoundedPriorityList{TElement,TPriority}"/> storing the indexes of the points and nodes of a KDTree
@@ -23,7 +23,7 @@ namespace Supercluster.KDTree.Utilities
         /// <typeparam name="TNode">The type of the nodes of the <see cref="KDTree{TDimension,TNode}"/></typeparam>
         /// <returns>The points and nodes in the <see cref="KDTree{TDimension,TNode}"/> implicitly referenced by the <see cref="BoundedPriorityList{TElement,TPriority}"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static (TDimension[], TNode)[] ToResultSet<TPriority, TDimension, TNode>(
+        internal static (TDimension[], TNode)[] ToResultSet<TPriority, TDimension, TNode>(
            this BoundedPriorityList<int, TPriority> list,
            KDTree<TDimension, TNode> tree)
            where TDimension : IComparable<TDimension>

@@ -1,6 +1,6 @@
 ﻿namespace KDTreeTests
 {
-    using Supercluster.KDTree;
+    using KDTree;
     using System.Linq;
 
     public static class Utilities

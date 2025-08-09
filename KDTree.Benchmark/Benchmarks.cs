@@ -12,15 +12,15 @@ namespace KDTree.Benchmark
     public class Benchmarks
     {
         // Test parameters - varying dimensions from 2D to 12D
-        [Params(2, 3, 6, 9, 15)]
+        [Params(15)]
         public int Dimensions { get; set; }
 
         // Data sizes for different scenarios
-        [Params(100, 10000)]
+        [Params(1000)]
         public int DataSize { get; set; }
 
         // Number of neighbors to search for
-        [Params(1, 5, 10, 50)]
+        [Params(1, 5)]
         public int NeighborCount { get; set; }
 
         // Test data

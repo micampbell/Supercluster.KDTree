@@ -2,13 +2,12 @@
 // Copyright (c) Eric Regina. All rights reserved.
 // </copyright>
 
-namespace Supercluster.KDTree
+namespace SuperClusterKDTree
 {
+    using SuperClusterKDTree.Utilities;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
-    using Supercluster.KDTree.Utilities;
     using static Utilities.BinaryTreeNavigation;
 
     /// <summary>
@@ -30,7 +29,7 @@ namespace Supercluster.KDTree
     /// <typeparam name="TDimension">The type of the dimension.</typeparam>
     /// <typeparam name="TNode">The type representing the actual node objects.</typeparam>
     [Serializable]
-    public class KDTree<TDimension, TNode>
+    public partial class KDTree<TDimension, TNode>
         where TDimension : IComparable<TDimension>
     {
         /// <summary>
@@ -61,7 +60,7 @@ namespace Supercluster.KDTree
         /// <summary>
         /// Gets a <see cref="BinaryTreeNavigator{TPoint,TNode}"/> that allows for manual tree navigation,
         /// </summary>
-        public BinaryTreeNavigator<TDimension[], TNode> Navigator
+        internal BinaryTreeNavigator<TDimension[], TNode> Navigator
             => new BinaryTreeNavigator<TDimension[], TNode>(this.InternalPointArray, this.InternalNodeArray);
 
         /// <summary>
@@ -75,7 +74,11 @@ namespace Supercluster.KDTree
         private TDimension MinValue { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KDTree{TDimension,TNode}"/> class.
+        /// Initializes a new instance of the <see cref="KDTree{TDimension,TNode}". /> class.
+        /// It is unlikely that this constructor will be used directly, as it is more common to use the
+        /// CreateTree method to create a KDTree from a set of points and nodes. This can be used and
+        /// is left here for created more complex KD-Trees where the points are not array of ints, floats or doubles
+        /// and/or the metrics are the L1, L2 or L∞ norms.
         /// </summary>
         /// <param name="dimensions">The number of dimensions in the data set.</param>
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
@@ -88,8 +91,8 @@ namespace Supercluster.KDTree
             TDimension[][] points,
             TNode[] nodes,
             Func<TDimension[], TDimension[], double> metric,
-            TDimension searchWindowMinValue = default(TDimension),
-            TDimension searchWindowMaxValue = default(TDimension))
+            TDimension searchWindowMinValue = default,
+            TDimension searchWindowMaxValue = default)
         {
             // Attempt find the Min/Max value if null.
             if (searchWindowMinValue.Equals(default(TDimension)))

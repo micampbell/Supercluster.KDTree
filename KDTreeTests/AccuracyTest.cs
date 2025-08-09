@@ -5,10 +5,10 @@ namespace KDTreeTests
 
     using NUnit.Framework;
 
-    using Supercluster.KDTree;
-    using Supercluster.KDTree.Utilities;
+    using KDTree;
+    using KDTree.Utilities;
 
-    using static Supercluster.KDTree.Utilities.BinaryTreeNavigation;
+    using static KDTree.Utilities.BinaryTreeNavigation;
 
     [TestFixture]
     public class AccuracyTest
@@ -38,7 +38,7 @@ namespace KDTreeTests
                              };
 
             var nodes = new string[] { "Eric", "Is", "A", "Really", "Stubborn", "Ferret" };
-            var tree = new KDTreePQ<double, string>(
+            var tree = new KDTree<double, string>(
                 2,
                 points,
                 nodes,
@@ -81,7 +81,7 @@ namespace KDTreeTests
 
             var nodes = new string[] { "Eric", "Is", "A", "Really", "Stubborn", "Ferret" };
 
-            var tree = new KDTreePQ<double, string>(2, points, nodes, Utilities.L2Norm_Squared_Double);
+            var tree = new KDTree<double, string>(2, points, nodes, Utilities.L2Norm_Squared_Double);
 
             var nav = tree.Navigator;
 
@@ -117,7 +117,7 @@ namespace KDTreeTests
             var testData = Utilities.GenerateDoubles(testDataSize, range);
 
 
-            var tree = new KDTreePQ<double, string>(2, treePoints, treeNodes, Utilities.L2Norm_Squared_Double);
+            var tree = new KDTree<double, string>(2, treePoints, treeNodes, Utilities.L2Norm_Squared_Double);
 
             for (int i = 0; i < testDataSize; i++)
             {

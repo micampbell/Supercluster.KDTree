@@ -2,7 +2,7 @@
 // Copyright (c) Eric Regina. All rights reserved.
 // </copyright>
 
-namespace Supercluster.KDTree
+namespace SuperClusterKDTree
 {
     using System;
     using System.Runtime.CompilerServices;
@@ -11,7 +11,7 @@ namespace Supercluster.KDTree
     /// Represents a hyper-rectangle. An N-Dimensional rectangle.
     /// </summary>
     /// <typeparam name="T">The type of "dimension" in the metric space in which the hyper-rectangle lives.</typeparam>
-    public struct HyperRect<T>
+    internal struct HyperRect<T>
         where T : IComparable<T>
     {
         /// <summary>
