@@ -141,7 +141,7 @@
             return bestPoint;
         }
 
-        public static Tuple<TPoint[], TNode> LinearSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target, Func<TPoint[], TPoint[], double> metric)
+        public static (TPoint[], TNode) LinearSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target, Func<TPoint[], TPoint[], double> metric)
         {
             var bestIndex = 0;
             var bestDist = Double.MaxValue;
@@ -156,7 +156,7 @@
                 }
             }
 
-            return new Tuple<TPoint[], TNode>(points[bestIndex], nodes[bestIndex]);
+            return (points[bestIndex], nodes[bestIndex]);
         }
 
 
@@ -177,7 +177,7 @@
         }
 
 
-        public static Tuple<TPoint[], TNode>[] LinearRadialSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target, Func<TPoint[], TPoint[], double> metric, double radius)
+        public static (TPoint[], TNode)[] LinearRadialSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target, Func<TPoint[], TPoint[], double> metric, double radius)
         {
             var pointsInRadius = new BoundedPriorityList<int, double>(points.Length, true);
 
@@ -190,7 +190,7 @@
                 }
             }
 
-            return pointsInRadius.Select(idx => new Tuple<TPoint[], TNode>(points[idx], nodes[idx])).ToArray();
+            return pointsInRadius.Select(idx => (points[idx], nodes[idx])).ToArray();
         }
 
         #endregion

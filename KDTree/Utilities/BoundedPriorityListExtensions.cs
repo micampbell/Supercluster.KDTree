@@ -23,16 +23,16 @@ namespace Supercluster.KDTree.Utilities
         /// <typeparam name="TNode">The type of the nodes of the <see cref="KDTree{TDimension,TNode}"/></typeparam>
         /// <returns>The points and nodes in the <see cref="KDTree{TDimension,TNode}"/> implicitly referenced by the <see cref="BoundedPriorityList{TElement,TPriority}"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Tuple<TDimension[], TNode>[] ToResultSet<TPriority, TDimension, TNode>(
+        public static (TDimension[], TNode)[] ToResultSet<TPriority, TDimension, TNode>(
            this BoundedPriorityList<int, TPriority> list,
            KDTree<TDimension, TNode> tree)
            where TDimension : IComparable<TDimension>
            where TPriority : IComparable<TPriority>
         {
-            var array = new Tuple<TDimension[], TNode>[list.Count];
+            var array = new (TDimension[], TNode)[list.Count];
             for (var i = 0; i < list.Count; i++)
             {
-                array[i] = new Tuple<TDimension[], TNode>(
+                array[i] = new (
                     tree.InternalPointArray[list[i]],
                     tree.InternalNodeArray[list[i]]);
             }

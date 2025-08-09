@@ -129,7 +129,7 @@ namespace Supercluster.KDTree
         /// <param name="point">The point whose neighbors we search for.</param>
         /// <param name="neighbors">The number of neighbors to look for.</param>
         /// <returns>The</returns>
-        public Tuple<TDimension[], TNode>[] NearestNeighbors(TDimension[] point, int neighbors)
+        public (TDimension[], TNode)[] NearestNeighbors(TDimension[] point, int neighbors)
         {
             var nearestNeighborList = new BoundedPriorityList<int, double>(neighbors, true);
             var rect = HyperRect<TDimension>.Infinite(this.Dimensions, this.MaxValue, this.MinValue);
@@ -145,7 +145,7 @@ namespace Supercluster.KDTree
         /// <param name="radius">The radius of the hyper-sphere</param>
         /// <param name="neighboors">The number of neighbors to return.</param>
         /// <returns>The specified number of closest points in the hyper-sphere</returns>
-        public Tuple<TDimension[], TNode>[] RadialSearch(TDimension[] center, double radius, int neighboors = -1)
+        public (TDimension[], TNode)[] RadialSearch(TDimension[] center, double radius, int neighboors = -1)
         {
             var nearestNeighbors = new BoundedPriorityList<int, double>(this.Count);
             if (neighboors == -1)

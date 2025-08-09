@@ -38,7 +38,7 @@ namespace KDTreeTests
                              };
 
             var nodes = new string[] { "Eric", "Is", "A", "Really", "Stubborn", "Ferret" };
-            var tree = new KDTree<double, string>(
+            var tree = new KDTreePQ<double, string>(
                 2,
                 points,
                 nodes,
@@ -81,7 +81,7 @@ namespace KDTreeTests
 
             var nodes = new string[] { "Eric", "Is", "A", "Really", "Stubborn", "Ferret" };
 
-            var tree = new KDTree<double, string>(2, points, nodes, Utilities.L2Norm_Squared_Double);
+            var tree = new KDTreePQ<double, string>(2, points, nodes, Utilities.L2Norm_Squared_Double);
 
             var nav = tree.Navigator;
 
@@ -117,7 +117,7 @@ namespace KDTreeTests
             var testData = Utilities.GenerateDoubles(testDataSize, range);
 
 
-            var tree = new KDTree<double, string>(2, treePoints, treeNodes, Utilities.L2Norm_Squared_Double);
+            var tree = new KDTreePQ<double, string>(2, treePoints, treeNodes, Utilities.L2Norm_Squared_Double);
 
             for (int i = 0; i < testDataSize; i++)
             {
@@ -140,7 +140,7 @@ namespace KDTreeTests
             var radius = 100;
 
             var treeData = Utilities.GenerateDoubles(dataSize, range);
-            var treeNodes = Utilities.GenerateDoubles(dataSize, range).Select(d => d.ToString()).ToArray();
+            var treeNodes = Utilities.GenerateDoubles(dataSize, range).Select(d => string.Join(',',d[0], d[1])).ToArray();
             var testData = Utilities.GenerateDoubles(testDataSize, range);
             var tree = new KDTree<double, string>(2, treeData, treeNodes, Utilities.L2Norm_Squared_Double);
 

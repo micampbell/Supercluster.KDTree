@@ -135,7 +135,7 @@ namespace Supercluster.KDTree
             var rect = HyperRect<TDimension>.Infinite(this.Dimensions, this.MaxValue, this.MinValue);
             this.SearchForNearestNeighbors(0, point, rect, 0, nearestNeighborList, double.MaxValue);
 
-            return nearestNeighborList.ToResultSet(this);
+            return ToResultSet(nearestNeighborList,this);
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Supercluster.KDTree
         /// <param name="radius">The radius of the hyper-sphere</param>
         /// <param name="neighboors">The number of neighbors to return.</param>
         /// <returns>The specified number of closest points in the hyper-sphere</returns>
-        public Tuple<TDimension[], TNode>[] RadialSearch(TDimension[] center, double radius, int neighboors = -1)
+        public (TDimension[], TNode)[] RadialSearch(TDimension[] center, double radius, int neighboors = -1)
         {
             var nearestNeighbors = new PriorityQueue<int, double>(this.Count);
             if (neighboors == -1)
@@ -169,7 +169,25 @@ namespace Supercluster.KDTree
                     radius);
             }
 
-            return nearestNeighbors.ToResultSet(this);
+            return ToResultSet(nearestNeighbors,this);
+        }
+
+        private (TDimension[], TNode)[] ToResultSet<TPriority, TDimension, TNode>(
+            PriorityQueue<int, TPriority> list,
+            KDTreePQ<TDimension, TNode> tree)
+           where TDimension : IComparable<TDimension>
+           where TPriority : IComparable<TPriority>
+        {
+            var array = new (TDimension[], TNode)[list.Count];
+            var i = 0;
+            foreach((int elt, _) in list.UnorderedItems)
+            {
+                array[i] = new(
+                    tree.InternalPointArray[elt],
+                    tree.InternalNodeArray[elt]);
+                i++;
+            }
+            return array;
         }
 
         /// <summary>
