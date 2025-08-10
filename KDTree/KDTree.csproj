@@ -1,24 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Version>1.0.10</Version>
-    <Authors>Eric Regina, Matt Campbell</Authors>
-    <Company>N/A</Company>
-    <PackageId>Supercluster.KDTree.Net8</PackageId>
-    <Description>A high-performance, generalized K-D Tree implementation for fast spatial searches.</Description>
-    <PackageTags>kdtree k-d-tree nearest-neighbor spatial search</PackageTags>
-    <PackageProjectUrl>https://github.com/micampbell/Supercluster.KDTree</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/micampbell/Supercluster.KDTree.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Version>1.0.11</Version>
+		<Authors>Eric Regina, Matt Campbell</Authors>
+		<Company>N/A</Company>
+		<PackageId>Supercluster.KDTree.Net</PackageId>
+		<Description>A high-performance, generalized K-D Tree implementation for fast spatial searches.</Description>
+		<PackageTags>kdtree k-d-tree nearest-neighbor spatial search</PackageTags>
+		<PackageProjectUrl>https://github.com/micampbell/Supercluster.KDTree</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/micampbell/Supercluster.KDTree.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\"/>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="\"/>
+	</ItemGroup>
 
 </Project>

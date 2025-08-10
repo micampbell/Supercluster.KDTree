@@ -2,8 +2,8 @@
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using Supercluster.KDTree;
-using Supercluster.KDTree.Utilities;
+using SuperclusterKDTree;
+using SuperclusterKDTree.Utilities;
 
 namespace KDTree.Benchmark
 {
@@ -27,8 +27,8 @@ namespace KDTree.Benchmark
         private double[][] _points;
         private string[] _nodes;
         private double[][] _queryPoints;
-        private Supercluster.KDTree.KDTree<double, string> _kdTree;
-        private Supercluster.KDTree.KDTreePQ<double, string> _kdTreePQ;
+        private SuperclusterKDTree.KDTree<double, string> _kdTree;
+        private SuperclusterKDTree.KDTreePQ<double, string> _kdTreePQ;
         
         // Metrics
         private static readonly Func<double[], double[], double> L2Metric = (x, y) =>

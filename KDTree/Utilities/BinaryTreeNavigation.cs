@@ -1,10 +1,10 @@
 ﻿// <copyright file="BinaryTreeNavigation.cs" company="Eric Regina">
 // Copyright (c) Eric Regina. All rights reserved.
 // </copyright>
+using System.Runtime.CompilerServices;
 
 namespace SuperClusterKDTree.Utilities
 {
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// Contains methods used for doing index arithmetic to traverse nodes in a binary tree.

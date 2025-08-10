@@ -1,14 +1,13 @@
 ﻿// <copyright file="BoundedPriorityList.cs" company="Eric Regina">
 // Copyright (c) Eric Regina. All rights reserved.
 // </copyright>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace SuperClusterKDTree.Utilities
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Runtime.CompilerServices;
-
     /// <summary>
     /// A list of limited length that remains sorted by <typeparamref name="TPriority"/>.
     /// Useful for keeping track of items in nearest neighbor searches. Insert is O(log n). Retrieval is O(1)

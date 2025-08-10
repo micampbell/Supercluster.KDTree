@@ -7,8 +7,7 @@ namespace SuperClusterKDTree
     using System;
     using System.Runtime.CompilerServices;
 
-    public partial class KDTree<TDimension, TNode>
-        where TDimension : IComparable<TDimension>
+    public class KDTree
     {
         #region when points are doubles
         /// <summary>
@@ -20,7 +19,7 @@ namespace SuperClusterKDTree
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
         /// <param name="nodes">The nodes associated with each point.</param>
         /// <param name="distanceMetric">The nodes associated with each point.</param>
-        public KDTree<double, TNode> CreateTree(double[][] points, TNode[] nodes, DistanceMetrics distanceMetric)
+        public static KDTree<double, TNode> Create<TNode>(double[][] points, TNode[] nodes, DistanceMetrics distanceMetric)
         {
             Func<double[], double[], double> metric;
             if (distanceMetric == DistanceMetrics.ManhattanDistance)
@@ -84,7 +83,7 @@ namespace SuperClusterKDTree
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
         /// <param name="nodes">The nodes associated with each point.</param>
         /// <param name="distanceMetric">The nodes associated with each point.</param>
-        public KDTree<float, TNode> CreateTree(float[][] points, TNode[] nodes, DistanceMetrics distanceMetric)
+        public static KDTree<float, TNode> Create<TNode>(float[][] points, TNode[] nodes, DistanceMetrics distanceMetric)
         {
             Func<float[], float[], double> metric;
             if (distanceMetric == DistanceMetrics.ManhattanDistance)
@@ -147,7 +146,7 @@ namespace SuperClusterKDTree
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
         /// <param name="nodes">The nodes associated with each point.</param>
         /// <param name="distanceMetric">The nodes associated with each point.</param>
-        public KDTree<int, TNode> CreateTree(int[][] points, TNode[] nodes, DistanceMetrics distanceMetric)
+        public static KDTree<int, TNode> Create<TNode>(int[][] points, TNode[] nodes, DistanceMetrics distanceMetric)
         {
             Func<int[], int[], double> metric;
             if (distanceMetric == DistanceMetrics.ManhattanDistance)

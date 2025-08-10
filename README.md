@@ -31,7 +31,7 @@ complicated than AVL or Red-Black trees. There do exist adaptive KD-Trees which 
 **Documentation and Tutorial**:
 *  MSDN Style Documentation: http://eric-regina.github.io/Supercluster.KDTree
 *  Wiki and Tutorials: https://github.com/eric-regina/Supercluster.KDTree/wiki
-*  Nuget Package: `Install-Package Supercluster.KDTree`
+*  Nuget Package: `Install-Package Supercluster.KDTree.Net`
 
 #### Special Thanks
 * Thanks to [Eric Regina](https://github.com/codeandcats) who did all the hard work 5 years ago

@@ -1,6 +1,5 @@
 ﻿namespace KDTreeTests
 {
-    using KDTree;
     using System.Linq;
 
     public static class Utilities
@@ -162,15 +161,12 @@
 
         public static T[][] LinearRadialSearch<T>(T[][] data, T[] point, Func<T[], T[], double> metric, double radius)
         {
-            var pointsInRadius = new BoundedPriorityList<T[], double>(data.Length, true);
-
+            var pointsInRadius = new List<T[]>();
             for (int i = 0; i < data.Length; i++)
             {
                 var currentDist = metric(point, data[i]);
                 if (radius >= currentDist)
-                {
-                    pointsInRadius.Add(data[i], currentDist);
-                }
+                    pointsInRadius.Add(data[i]);
             }
 
             return pointsInRadius.ToArray();
@@ -179,18 +175,17 @@
 
         public static (TPoint[], TNode)[] LinearRadialSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target, Func<TPoint[], TPoint[], double> metric, double radius)
         {
-            var pointsInRadius = new BoundedPriorityList<int, double>(points.Length, true);
-
+            var pointsInRadius = new SortedList<double,(TPoint[], TNode)>();
             for (int i = 0; i < points.Length; i++)
             {
                 var currentDist = metric(target, points[i]);
                 if (radius >= currentDist)
                 {
-                    pointsInRadius.Add(i, currentDist);
+                    pointsInRadius.Add(currentDist,(points[i], nodes[i]));
                 }
             }
 
-            return pointsInRadius.Select(idx => (points[idx], nodes[idx])).ToArray();
+            return pointsInRadius.Values.ToArray();
         }
 
         #endregion

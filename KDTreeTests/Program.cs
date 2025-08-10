@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace KDTreeTests
 {
-    internal class Progfghjram
+    internal class Program
     {
-        static void Mafghjkin(string[] args)
+        static void Main(string[] args)
         {
             var test = new AccuracyTest();
+            test.FindNearestNeighborTest();
             test.RadialSearchTest();
         }
     }

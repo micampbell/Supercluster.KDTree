@@ -29,7 +29,7 @@ namespace SuperClusterKDTree
     /// <typeparam name="TDimension">The type of the dimension.</typeparam>
     /// <typeparam name="TNode">The type representing the actual node objects.</typeparam>
     [Serializable]
-    public partial class KDTree<TDimension, TNode>
+    public class KDTree<TDimension, TNode>
         where TDimension : IComparable<TDimension>
     {
         /// <summary>
@@ -76,7 +76,7 @@ namespace SuperClusterKDTree
         /// <summary>
         /// Initializes a new instance of the <see cref="KDTree{TDimension,TNode}". /> class.
         /// It is unlikely that this constructor will be used directly, as it is more common to use the
-        /// CreateTree method to create a KDTree from a set of points and nodes. This can be used and
+        /// Create method to create a KDTree from a set of points and nodes. This can be used and
         /// is left here for created more complex KD-Trees where the points are not array of ints, floats or doubles
         /// and/or the metrics are the L1, L2 or L∞ norms.
         /// </summary>
