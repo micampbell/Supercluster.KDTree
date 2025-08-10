@@ -1,14 +1,12 @@
 # Supercluster.KDTree
 This is a [KD-Tree](https://en.wikipedia.org/wiki/K-d_tree) written completely in C#.  This project originally 
-started as a fork of the KD-Tree Written by [CodeandCats](https://github.com/codeandcats), however, the 
-structure and intention of this project has changed drastically from its origin. 
+started as a fork of the KD-Tree Written by [Eric Regina](https://github.com/ericreg/Supercluster.KDTree). This 
+effort is simply updating the code to be more idiomatic C# and to add some additional features.
 
 ## About the Project
 
-This is a KD-Tree that is optimized for machine learning applications, **however, it can used for less intensive purposes as well**. (In fact, I am writing this for my machine learning library [Supercluster](https://github.com/eric-regina/Supercluster)) In machine learning data-sets
- are often built, re-built, and built again. Also, in machine learning, algorithms need to be **fast** 
-for look ups but it is more acceptable to be slow for construction.
-Thus the tree bas been designed with this philosophy in mind. General characteristics are:
+This is a KD-Tree that was originally optimized for machine learning applications, by the original author
+([Supercluster](https://github.com/eric-regina/Supercluster))
 
 * **The tree is extremely fast for search.** 
     * For a 10,000 3-nearest-neighbor searches on a 1,000,000 node 2-Dimensional tree using floats is about 7.5 times than the KD-Tree 
@@ -36,7 +34,7 @@ complicated than AVL or Red-Black trees. There do exist adaptive KD-Trees which 
 *  Nuget Package: `Install-Package Supercluster.KDTree`
 
 #### Special Thanks
-
+* Thanks to [Eric Regina](https://github.com/codeandcats) who did all the hard work 5 years ago
 * Thanks to [CodeandCats](https://github.com/codeandcats) for the original implementation that this was based off. I had fun ~~tearing apart~~ reading your code. ;)
 * Thanks to [Prof. Hanan Samet](http://www.cs.umd.edu/~hjs/) for writing an amazing book on spatial and metric data structures. The book provided much insight and knowledge.
 * Thanks to [César Souza](https://github.com/cesarsouza) for your work on machine learning for .NET. It has inspired me to try and do better!

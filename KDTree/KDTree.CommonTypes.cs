@@ -5,17 +5,17 @@
 namespace SuperClusterKDTree
 {
     using System;
-
+    using System.Runtime.CompilerServices;
 
     public partial class KDTree<TDimension, TNode>
         where TDimension : IComparable<TDimension>
     {
         #region when points are doubles
         /// <summary>
-        /// Initializes a new instance of the <see cref="KDTree{double,TNode}". 
-        /// This is simpler than the KDTree constructor as the most common use case is 
-        /// to have an n-dimension point that is comprised of doubles and the 
-        /// distance metric is likey the L1, L2 or L∞/> class.
+        /// Initializes a new instance of the <see cref="KDTree{double, TNode}"/>.
+        /// This is simpler than the KDTree constructor as the most common use case is
+        /// to have an n-dimension point that is comprised of doubles and the
+        /// distance metric is likey the L1, L2 or L∞ norm.
         /// </summary>
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
         /// <param name="nodes">The nodes associated with each point.</param>
@@ -34,23 +34,34 @@ namespace SuperClusterKDTree
         }
 
 
-        private static Func<double[], double[], double> L2NormDistanceDouble = (x, y) =>
+        private static readonly Func<double[], double[], double> L2NormDistanceDouble = L2NormDistanceDoubleImpl;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double L2NormDistanceDoubleImpl(double[] x, double[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
                 dist += (x[i] - y[i]) * (x[i] - y[i]);
 
             return dist;
-        };
-        private static Func<double[], double[], double> L1NormDistanceDouble = (x, y) =>
+        }
+
+        private static readonly Func<double[], double[], double> L1NormDistanceDouble = L1NormDistanceDoubleImpl;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double L1NormDistanceDoubleImpl(double[] x, double[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
                 dist += Math.Abs(x[i] - y[i]);
 
             return dist;
-        };
-        private static Func<double[], double[], double> LInfNormDistanceDouble = (x, y) =>
+        }
+
+        private static readonly Func<double[], double[], double> LInfNormDistanceDouble = LInfNormDistanceDoubleImpl;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double LInfNormDistanceDoubleImpl(double[] x, double[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -60,15 +71,15 @@ namespace SuperClusterKDTree
                     dist = d;
             }
             return dist;
-        };
+        }
         #endregion
 
         #region when points are floats
         /// <summary>
-        /// Initializes a new instance of the <see cref="KDTree{float,TNode}". 
-        /// This is simpler than the KDTree constructor as the most common use case is 
-        /// to have an n-dimension point that is comprised of floats and the 
-        /// distance metric is likey the L1, L2 or L∞/> class.
+        /// Initializes a new instance of the <see cref="KDTree{float, TNode}"/>.
+        /// This is simpler than the KDTree constructor as the most common use case is
+        /// to have an n-dimension point that is comprised of floats and the
+        /// distance metric is likey the L1, L2 or L∞ norm.
         /// </summary>
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
         /// <param name="nodes">The nodes associated with each point.</param>
@@ -86,24 +97,34 @@ namespace SuperClusterKDTree
             return new KDTree<float, TNode>(points[0].Length, points, nodes, metric, default, default);
         }
 
+        private static readonly Func<float[], float[], double> L2NormDistanceFloat = L2NormDistanceFloatImpl;
 
-        private static Func<float[], float[], double> L2NormDistanceFloat = (x, y) =>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double L2NormDistanceFloatImpl(float[] x, float[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
                 dist += (x[i] - y[i]) * (x[i] - y[i]);
 
             return dist;
-        };
-        private static Func<float[], float[], double> L1NormDistanceFloat = (x, y) =>
+        }
+
+        private static readonly Func<float[], float[], double> L1NormDistanceFloat = L1NormDistanceFloatImpl;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double L1NormDistanceFloatImpl(float[] x, float[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
                 dist += Math.Abs(x[i] - y[i]);
 
             return dist;
-        };
-        private static Func<float[], float[], double> LInfNormDistanceFloat = (x, y) =>
+        }
+
+        private static readonly Func<float[], float[], double> LInfNormDistanceFloat = LInfNormDistanceFloatImpl;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double LInfNormDistanceFloatImpl(float[] x, float[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -113,15 +134,15 @@ namespace SuperClusterKDTree
                     dist = d;
             }
             return dist;
-        };
+        }
         #endregion
 
         #region when points are ints
         /// <summary>
-        /// Initializes a new instance of the <see cref="KDTree{int,TNode}". 
-        /// This is simpler than the KDTree constructor as the most common use case is 
-        /// to have an n-dimension point that is comprised of ints and the 
-        /// distance metric is likey the L1, L2 or L∞/> class.
+        /// Initializes a new instance of the <see cref="KDTree{int, TNode}"/>.
+        /// This is simpler than the KDTree constructor as the most common use case is
+        /// to have an n-dimension point that is comprised of ints and the
+        /// distance metric is likey the L1, L2 or L∞ norm.
         /// </summary>
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
         /// <param name="nodes">The nodes associated with each point.</param>
@@ -140,23 +161,34 @@ namespace SuperClusterKDTree
         }
 
 
-        private static Func<int[], int[], double> L2NormDistanceInt = (x, y) =>
+        private static readonly Func<int[], int[], double> L2NormDistanceInt = L2NormDistanceIntImpl;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double L2NormDistanceIntImpl(int[] x, int[] y)
         {
             int dist = 0;
             for (int i = 0; i < x.Length; i++)
                 dist += (x[i] - y[i]) * (x[i] - y[i]);
 
             return dist;
-        };
-        private static Func<int[], int[], double> L1NormDistanceInt = (x, y) =>
+        }
+
+        private static readonly Func<int[], int[], double> L1NormDistanceInt = L1NormDistanceIntImpl;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double L1NormDistanceIntImpl(int[] x, int[] y)
         {
             int dist = 0;
             for (int i = 0; i < x.Length; i++)
                 dist += Math.Abs(x[i] - y[i]);
 
             return dist;
-        };
-        private static Func<int[], int[], double> LInfNormDistanceInt = (x, y) =>
+        }
+
+        private static readonly Func<int[], int[], double> LInfNormDistanceInt = LInfNormDistanceIntImpl;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double LInfNormDistanceIntImpl(int[] x, int[] y)
         {
             int dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -166,7 +198,7 @@ namespace SuperClusterKDTree
                     dist = d;
             }
             return dist;
-        };
+        }
         #endregion
     }
 
