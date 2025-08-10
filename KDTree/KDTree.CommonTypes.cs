@@ -23,20 +23,26 @@ namespace SuperClusterKDTree
         {
             Func<double[], double[], double> metric;
             if (distanceMetric == DistanceMetrics.ManhattanDistance)
-                metric = L1NormDistanceDouble;
+                metric = ManhattanDistanceFuncDouble;
             else if (distanceMetric == DistanceMetrics.EuclideanDistance)
-                metric = L2NormDistanceDouble;
+                metric = EuclideanDistanceFuncDouble;
             else //if (proximityType == ProximityTypes.ChebyshevDistance)
-                metric = LInfNormDistanceDouble;
+                metric = ChebyshevDistanceFuncDouble;
 
             return new KDTree<double, TNode>(points[0].Length, points, nodes, metric, default, default);
         }
 
 
-        private static readonly Func<double[], double[], double> L2NormDistanceDouble = L2NormDistanceDoubleImpl;
+        private static readonly Func<double[], double[], double> EuclideanDistanceFuncDouble = EuclideanDistance;
 
+        /// <summary>
+        /// Calculates the squared Euclidean (L2 norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The squared Euclidean distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double L2NormDistanceDoubleImpl(double[] x, double[] y)
+        public static double EuclideanDistance(double[] x, double[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -45,10 +51,16 @@ namespace SuperClusterKDTree
             return dist;
         }
 
-        private static readonly Func<double[], double[], double> L1NormDistanceDouble = L1NormDistanceDoubleImpl;
+        private static readonly Func<double[], double[], double> ManhattanDistanceFuncDouble = ManhattanDistance;
 
+        /// <summary>
+        /// Calculates the Manhattan (L1 norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The Manhattan distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double L1NormDistanceDoubleImpl(double[] x, double[] y)
+        public static double ManhattanDistance(double[] x, double[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -57,10 +69,16 @@ namespace SuperClusterKDTree
             return dist;
         }
 
-        private static readonly Func<double[], double[], double> LInfNormDistanceDouble = LInfNormDistanceDoubleImpl;
+        private static readonly Func<double[], double[], double> ChebyshevDistanceFuncDouble = ChebyshevDistance;
 
+        /// <summary>
+        /// Calculates the Chebyshev (L∞ norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The Chebyshev distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double LInfNormDistanceDoubleImpl(double[] x, double[] y)
+        public static double ChebyshevDistance(double[] x, double[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -87,19 +105,25 @@ namespace SuperClusterKDTree
         {
             Func<float[], float[], double> metric;
             if (distanceMetric == DistanceMetrics.ManhattanDistance)
-                metric = L1NormDistanceFloat;
+                metric = ManhattanDistanceFuncFloat;
             else if (distanceMetric == DistanceMetrics.EuclideanDistance)
-                metric = L2NormDistanceFloat;
+                metric = EuclideanDistanceFuncFloat;
             else //if (proximityType == ProximityTypes.ChebyshevDistance)
-                metric = LInfNormDistanceFloat;
+                metric = ChebyshevDistanceFuncFloat;
 
             return new KDTree<float, TNode>(points[0].Length, points, nodes, metric, default, default);
         }
 
-        private static readonly Func<float[], float[], double> L2NormDistanceFloat = L2NormDistanceFloatImpl;
+        private static readonly Func<float[], float[], double> EuclideanDistanceFuncFloat = EuclideanDistance;
 
+        /// <summary>
+        /// Calculates the squared Euclidean (L2 norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The squared Euclidean distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double L2NormDistanceFloatImpl(float[] x, float[] y)
+        public static double EuclideanDistance(float[] x, float[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -108,10 +132,16 @@ namespace SuperClusterKDTree
             return dist;
         }
 
-        private static readonly Func<float[], float[], double> L1NormDistanceFloat = L1NormDistanceFloatImpl;
+        private static readonly Func<float[], float[], double> ManhattanDistanceFuncFloat = ManhattanDistance;
 
+        /// <summary>
+        /// Calculates the Manhattan (L1 norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The Manhattan distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double L1NormDistanceFloatImpl(float[] x, float[] y)
+        public static double ManhattanDistance(float[] x, float[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -120,10 +150,16 @@ namespace SuperClusterKDTree
             return dist;
         }
 
-        private static readonly Func<float[], float[], double> LInfNormDistanceFloat = LInfNormDistanceFloatImpl;
+        private static readonly Func<float[], float[], double> ChebyshevDistanceFuncFloat = ChebyshevDistance;
 
+        /// <summary>
+        /// Calculates the Chebyshev (L∞ norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The Chebyshev distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double LInfNormDistanceFloatImpl(float[] x, float[] y)
+        public static double ChebyshevDistance(float[] x, float[] y)
         {
             double dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -150,20 +186,26 @@ namespace SuperClusterKDTree
         {
             Func<int[], int[], double> metric;
             if (distanceMetric == DistanceMetrics.ManhattanDistance)
-                metric = L1NormDistanceInt;
+                metric = ManhattanDistanceFuncInt;
             else if (distanceMetric == DistanceMetrics.EuclideanDistance)
-                metric = L2NormDistanceInt;
+                metric = EuclideanDistanceFuncInt;
             else //if (proximityType == ProximityTypes.ChebyshevDistance)
-                metric = LInfNormDistanceInt;
+                metric = ChebyshevDistanceFuncInt;
 
             return new KDTree<int, TNode>(points[0].Length, points, nodes, metric, default, default);
         }
 
 
-        private static readonly Func<int[], int[], double> L2NormDistanceInt = L2NormDistanceIntImpl;
+        private static readonly Func<int[], int[], double> EuclideanDistanceFuncInt = EuclideanDistance;
 
+        /// <summary>
+        /// Calculates the squared Euclidean (L2 norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The squared Euclidean distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double L2NormDistanceIntImpl(int[] x, int[] y)
+        public static double EuclideanDistance(int[] x, int[] y)
         {
             int dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -172,10 +214,16 @@ namespace SuperClusterKDTree
             return dist;
         }
 
-        private static readonly Func<int[], int[], double> L1NormDistanceInt = L1NormDistanceIntImpl;
+        private static readonly Func<int[], int[], double> ManhattanDistanceFuncInt = ManhattanDistance;
 
+        /// <summary>
+        /// Calculates the Manhattan (L1 norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The Manhattan distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double L1NormDistanceIntImpl(int[] x, int[] y)
+        public static double ManhattanDistance(int[] x, int[] y)
         {
             int dist = 0;
             for (int i = 0; i < x.Length; i++)
@@ -184,10 +232,16 @@ namespace SuperClusterKDTree
             return dist;
         }
 
-        private static readonly Func<int[], int[], double> LInfNormDistanceInt = LInfNormDistanceIntImpl;
+        private static readonly Func<int[], int[], double> ChebyshevDistanceFuncInt = ChebyshevDistance;
 
+        /// <summary>
+        /// Calculates the Chebyshev (L∞ norm) distance between two points represented as double arrays.
+        /// </summary>
+        /// <param name="x">The first point.</param>
+        /// <param name="y">The second point.</param>
+        /// <returns>The Chebyshev distance between <paramref name="x"/> and <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static double LInfNormDistanceIntImpl(int[] x, int[] y)
+        public static double ChebyshevDistance(int[] x, int[] y)
         {
             int dist = 0;
             for (int i = 0; i < x.Length; i++)

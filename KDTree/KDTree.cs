@@ -127,14 +127,14 @@ namespace SuperClusterKDTree
         }
 
         /// <summary>
-        /// Finds the nearest neighbors in the <see cref="KDTree{TDimension,TNode}"/> of the given <paramref name="point"/>.
+        /// Finds the nearest numNeighbors in the <see cref="KDTree{TDimension,TNode}"/> of the given <paramref name="point"/>.
         /// </summary>
-        /// <param name="point">The point whose neighbors we search for.</param>
-        /// <param name="neighbors">The number of neighbors to look for.</param>
+        /// <param name="point">The point whose numNeighbors we search for.</param>
+        /// <param name="numNeighbors">The number of numNeighbors to look for.</param>
         /// <returns>The</returns>
-        public (TDimension[], TNode)[] NearestNeighbors(TDimension[] point, int neighbors)
+        public (TDimension[], TNode)[] NearestNeighbors(TDimension[] point, int numNeighbors)
         {
-            var nearestNeighborList = new BoundedPriorityList<int, double>(neighbors, true);
+            var nearestNeighborList = new BoundedPriorityList<int, double>(numNeighbors, true);
             var rect = HyperRect<TDimension>.Infinite(this.Dimensions, this.MaxValue, this.MinValue);
             this.SearchForNearestNeighbors(0, point, rect, 0, nearestNeighborList, double.MaxValue);
 
@@ -146,7 +146,7 @@ namespace SuperClusterKDTree
         /// </summary>
         /// <param name="center">The center of the hyper-sphere</param>
         /// <param name="radius">The radius of the hyper-sphere</param>
-        /// <param name="neighboors">The number of neighbors to return.</param>
+        /// <param name="neighboors">The number of numNeighbors to return.</param>
         /// <returns>The specified number of closest points in the hyper-sphere</returns>
         public (TDimension[], TNode)[] RadialSearch(TDimension[] center, double radius, int neighboors = -1)
         {
@@ -260,13 +260,13 @@ namespace SuperClusterKDTree
         }
 
         /// <summary>
-        /// A top-down recursive method to find the nearest neighbors of a given point.
+        /// A top-down recursive method to find the nearest numNeighbors of a given point.
         /// </summary>
         /// <param name="nodeIndex">The index of the node for the current recursion branch.</param>
-        /// <param name="target">The point whose neighbors we are trying to find.</param>
-        /// <param name="rect">The <see cref="HyperRect{T}"/> containing the possible nearest neighbors.</param>
+        /// <param name="target">The point whose numNeighbors we are trying to find.</param>
+        /// <param name="rect">The <see cref="HyperRect{T}"/> containing the possible nearest numNeighbors.</param>
         /// <param name="dimension">The current splitting dimension for this recursion branch.</param>
-        /// <param name="nearestNeighbors">The <see cref="BoundedPriorityList{TElement,TPriority}"/> containing the nearest neighbors already discovered.</param>
+        /// <param name="nearestNeighbors">The <see cref="BoundedPriorityList{TElement,TPriority}"/> containing the nearest numNeighbors already discovered.</param>
         /// <param name="maxSearchRadiusSquared">The squared radius of the current largest distance to search from the <paramref name="target"/></param>
         private void SearchForNearestNeighbors(
             int nodeIndex,
@@ -344,7 +344,7 @@ namespace SuperClusterKDTree
                 }
             }
 
-            // Try to add the current node to our nearest neighbors list
+            // Try to add the current node to our nearest numNeighbors list
             distanceSquaredToTarget = this.Metric(this.InternalPointArray[nodeIndex], target);
             if (distanceSquaredToTarget.CompareTo(maxSearchRadiusSquared) <= 0)
             {
