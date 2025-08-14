@@ -8,6 +8,8 @@ namespace SuperClusterKDTree
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Numerics;
+    using System.Runtime.CompilerServices;
     using static Utilities.BinaryTreeNavigation;
 
     /// <summary>
@@ -29,8 +31,9 @@ namespace SuperClusterKDTree
     /// <typeparam name="TDimension">The type of the dimension.</typeparam>
     /// <typeparam name="TNode">The type representing the actual node objects.</typeparam>
     [Serializable]
-    public class KDTree<TDimension, TNode>
-        where TDimension : IComparable<TDimension>
+    public class KDTree<TDimension, TPriority, TNode>
+        where TDimension : IComparable<TDimension>, IMinMaxValue<TDimension>
+        where TPriority : INumber<TPriority>, IMinMaxValue<TPriority>
     {
         /// <summary>
         /// The number of points in the KDTree
@@ -45,7 +48,7 @@ namespace SuperClusterKDTree
         /// <summary>
         /// The array in which the binary tree is stored. Enumerating this array is a level-order traversal of the tree.
         /// </summary>
-        public TDimension[][] InternalPointArray { get; }
+        public IReadOnlyList<TDimension>[] InternalPointArray { get; }
 
         /// <summary>
         /// The array in which the node objects are stored. There is a one-to-one correspondence with this array and the <see cref="InternalPointArray"/>.
@@ -55,30 +58,30 @@ namespace SuperClusterKDTree
         /// <summary>
         /// The metric function used to calculate distance between points.
         /// </summary>
-        public Func<TDimension[], TDimension[], double> Metric { get; set; }
+        public Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TPriority> Metric { get; set; }
 
         /// <summary>
         /// Gets a <see cref="BinaryTreeNavigator{TPoint,TNode}"/> that allows for manual tree navigation,
         /// </summary>
-        internal BinaryTreeNavigator<TDimension[], TNode> Navigator
-            => new BinaryTreeNavigator<TDimension[], TNode>(this.InternalPointArray, this.InternalNodeArray);
+        internal BinaryTreeNavigator<IReadOnlyList<TDimension>, TNode> Navigator
+            => new BinaryTreeNavigator<IReadOnlyList<TDimension>, TNode>(this.InternalPointArray, this.InternalNodeArray);
 
         /// <summary>
         /// The maximum value along any dimension.
         /// </summary>
-        private TDimension MaxValue { get; }
+        private TDimension MaxValue { get; init; }
 
         /// <summary>
         /// The minimum value along any dimension.
         /// </summary>
-        private TDimension MinValue { get; }
+        private TDimension MinValue { get; init; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KDTree{TDimension,TNode}". /> class.
         /// It is unlikely that this constructor will be used directly, as it is more common to use the
         /// Create method to create a KDTree from a set of points and nodes. This can be used and
-        /// is left here for created more complex KD-Trees where the points are not array of ints, floats or doubles
-        /// and/or the metrics are the L1, L2 or L∞ norms.
+        /// is left here for created more complex KD-Trees where the points have unique distance metrics.
+        /// or the type of the distance metric is different from the type of the points.
         /// </summary>
         /// <param name="dimensions">The number of dimensions in the data set.</param>
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
@@ -88,38 +91,28 @@ namespace SuperClusterKDTree
         /// <param name="searchWindowMaxValue">The maximum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MaxValue". All numeric structs have this field.</param>
         public KDTree(
             int dimensions,
-            TDimension[][] points,
+            IReadOnlyList<TDimension>[] points,
             TNode[] nodes,
-            Func<TDimension[], TDimension[], double> metric,
+            Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TPriority> metric,
             TDimension searchWindowMinValue = default,
             TDimension searchWindowMaxValue = default)
         {
             // Attempt find the Min/Max value if null.
             if (searchWindowMinValue.Equals(default(TDimension)))
-            {
-                var type = typeof(TDimension);
-                this.MinValue = (TDimension)type.GetField("MinValue").GetValue(type);
-            }
+                this.MinValue = TDimension.MinValue;
             else
-            {
                 this.MinValue = searchWindowMinValue;
-            }
 
             if (searchWindowMaxValue.Equals(default(TDimension)))
-            {
-                var type = typeof(TDimension);
-                this.MaxValue = (TDimension)type.GetField("MaxValue").GetValue(type);
-            }
+                this.MaxValue = TDimension.MaxValue;
             else
-            {
                 this.MaxValue = searchWindowMaxValue;
-            }
 
             // Calculate the number of nodes needed to contain the binary tree.
             // This is equivalent to finding the power of 2 greater than the number of points
             var elementCount = (int)Math.Pow(2, (int)(Math.Log(points.Length) / Math.Log(2)) + 1);
             this.Dimensions = dimensions;
-            this.InternalPointArray = Enumerable.Repeat(default(TDimension[]), elementCount).ToArray();
+            this.InternalPointArray = Enumerable.Repeat(default(IReadOnlyList<TDimension>), elementCount).ToArray();
             this.InternalNodeArray = Enumerable.Repeat(default(TNode), elementCount).ToArray();
             this.Metric = metric;
             this.Count = points.Length;
@@ -132,13 +125,13 @@ namespace SuperClusterKDTree
         /// <param name="point">The point whose numNeighbors we search for.</param>
         /// <param name="numNeighbors">The number of numNeighbors to look for.</param>
         /// <returns>The</returns>
-        public (TDimension[], TNode)[] NearestNeighbors(TDimension[] point, int numNeighbors)
+        public IEnumerable<(IReadOnlyList<TDimension>, TNode)> NearestNeighbors(IReadOnlyList<TDimension> point, int numNeighbors)
         {
-            var nearestNeighborList = new BoundedPriorityList<int, double>(numNeighbors, true);
+            var nearestNeighborList = new BoundedPriorityList<int, TPriority>(numNeighbors, true);
             var rect = HyperRect<TDimension>.Infinite(this.Dimensions, this.MaxValue, this.MinValue);
-            this.SearchForNearestNeighbors(0, point, rect, 0, nearestNeighborList, double.MaxValue);
+            this.SearchForNearestNeighbors(0, point, rect, 0, nearestNeighborList, TPriority.MaxValue);
 
-            return nearestNeighborList.ToResultSet(this);
+            return ToResultSet(nearestNeighborList);
         }
 
         /// <summary>
@@ -148,9 +141,9 @@ namespace SuperClusterKDTree
         /// <param name="radius">The radius of the hyper-sphere</param>
         /// <param name="neighboors">The number of numNeighbors to return.</param>
         /// <returns>The specified number of closest points in the hyper-sphere</returns>
-        public (TDimension[], TNode)[] RadialSearch(TDimension[] center, double radius, int neighboors = -1)
+        public IEnumerable<(IReadOnlyList<TDimension>, TNode)> RadialSearch(IReadOnlyList<TDimension> center, TPriority radius, int neighboors = -1)
         {
-            var nearestNeighbors = new BoundedPriorityList<int, double>(this.Count);
+            var nearestNeighbors = new BoundedPriorityList<int, TPriority>(this.Count);
             if (neighboors == -1)
             {
                 this.SearchForNearestNeighbors(
@@ -172,7 +165,7 @@ namespace SuperClusterKDTree
                     radius);
             }
 
-            return nearestNeighbors.ToResultSet(this);
+            return ToResultSet(nearestNeighbors);
         }
 
         /// <summary>
@@ -185,7 +178,7 @@ namespace SuperClusterKDTree
         private void GenerateTree(
             int index,
             int dim,
-            IReadOnlyCollection<TDimension[]> points,
+            IReadOnlyCollection<IReadOnlyList<TDimension>> points,
             IEnumerable<TNode> nodes)
         {
             // See wikipedia for a good explanation kd-tree construction.
@@ -270,11 +263,11 @@ namespace SuperClusterKDTree
         /// <param name="maxSearchRadiusSquared">The squared radius of the current largest distance to search from the <paramref name="target"/></param>
         private void SearchForNearestNeighbors(
             int nodeIndex,
-            TDimension[] target,
+            IReadOnlyList<TDimension> target,
             HyperRect<TDimension> rect,
             int dimension,
-            BoundedPriorityList<int, double> nearestNeighbors,
-            double maxSearchRadiusSquared)
+            BoundedPriorityList<int, TPriority> nearestNeighbors,
+            TPriority maxSearchRadiusSquared)
         {
             if (this.InternalPointArray.Length <= nodeIndex || nodeIndex < 0
                 || this.InternalPointArray[nodeIndex] == null)
@@ -351,6 +344,17 @@ namespace SuperClusterKDTree
                 nearestNeighbors.Add(nodeIndex, distanceSquaredToTarget);
             }
         }
-    }
 
+        /// <summary>
+        /// Takes a <see cref="BoundedPriorityList{TElement,TPriority}"/> storing the indexes of the points and nodes of a KDTree
+        /// and returns the points and nodes.
+        /// </summary>
+        /// <param name="list">The <see cref="BoundedPriorityList{TElement,TPriority}"/>.</param>
+         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private IEnumerable<(IReadOnlyList<TDimension>, TNode)> ToResultSet(BoundedPriorityList<int, TPriority> list)
+        {
+            for (var i = 0; i < list.Count; i++)
+                yield return new(InternalPointArray[list[i]], InternalNodeArray[list[i]]);
+        }
+    }
 }

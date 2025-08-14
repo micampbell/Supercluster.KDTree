@@ -5,10 +5,10 @@
     public static class Utilities
     {
         #region Metrics
-        public static Func<float[], float[], double> L2Norm_Squared_Float = (x, y) =>
+        public static Func<IReadOnlyList<float>, IReadOnlyList<float>, double> L2Norm_Squared_Float = (x, y) =>
         {
             float dist = 0f;
-            for (int i = 0; i < x.Length; i++)
+            for (int i = 0; i < x.Count; i++)
             {
                 dist += (x[i] - y[i]) * (x[i] - y[i]);
             }
@@ -16,10 +16,10 @@
             return dist;
         };
 
-        public static Func<double[], double[], double> L2Norm_Squared_Double = (x, y) =>
+        public static Func<IReadOnlyList<double>, IReadOnlyList<double>, double> L2Norm_Squared_Double = (x, y) =>
         {
             double dist = 0f;
-            for (int i = 0; i < x.Length; i++)
+            for (int i = 0; i < x.Count; i++)
             {
                 dist += (x[i] - y[i]) * (x[i] - y[i]);
             }

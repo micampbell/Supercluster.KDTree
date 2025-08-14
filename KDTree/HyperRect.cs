@@ -5,6 +5,7 @@
 namespace SuperClusterKDTree
 {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.CompilerServices;
 
     /// <summary>
@@ -94,11 +95,11 @@ namespace SuperClusterKDTree
         /// <param name="toPoint">We try to find a point in or on the rectangle closest to this point.</param>
         /// <returns>The point on or in the rectangle that is closest to the given point.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T[] GetClosestPoint(T[] toPoint)
+        public IReadOnlyList<T> GetClosestPoint(IReadOnlyList<T> toPoint)
         {
-            var closest = new T[toPoint.Length];
+            var closest = new T[toPoint.Count];
 
-            for (var dimension = 0; dimension < toPoint.Length; dimension++)
+            for (var dimension = 0; dimension < toPoint.Count; dimension++)
             {
                 if (this.minPoint[dimension].CompareTo(toPoint[dimension]) > 0)
                 {
