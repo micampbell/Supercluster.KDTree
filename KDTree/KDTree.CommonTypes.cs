@@ -21,7 +21,8 @@ namespace SuperClusterKDTree
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
         /// <param name="nodes">The nodes associated with each point.</param>
         /// <param name="distanceMetric">The nodes associated with each point.</param>
-        public static KDTree<TDimension, TDimension, TNode> Create<TDimension, TNode>(IReadOnlyList<TDimension>[] points, TNode[] nodes, DistanceMetrics distanceMetric)
+        public static KDTree<TDimension, TDimension, TNode> Create<TDimension, TNode>(IList<IReadOnlyList<TDimension>> points,
+            IList<TNode> nodes, DistanceMetrics distanceMetric)
             where TDimension : INumber<TDimension>, IMinMaxValue<TDimension>
         {
             Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TDimension> metric;

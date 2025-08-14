@@ -5,7 +5,7 @@
 namespace SuperClusterKDTree.Utilities
 {
     using System;
-
+    using System.Collections.Generic;
     using static BinaryTreeNavigation;
 
     /// <summary>
@@ -19,9 +19,9 @@ namespace SuperClusterKDTree.Utilities
         /// <summary>
         /// A reference to the pointArray in which the binary tree is stored in.
         /// </summary>
-        private readonly TPoint[] pointArray;
+        private readonly IList<TPoint> pointArray;
 
-        private readonly TNode[] nodeArray;
+        private readonly IList<TNode> nodeArray;
 
         /// <summary>
         /// The index in the pointArray that the current node resides in.
@@ -33,7 +33,7 @@ namespace SuperClusterKDTree.Utilities
         /// </summary>
         internal BinaryTreeNavigator<TPoint, TNode> Left
             =>
-                LeftChildIndex(this.Index) < this.pointArray.Length - 1
+                LeftChildIndex(this.Index) < this.pointArray.Count - 1
                     ? new BinaryTreeNavigator<TPoint, TNode>(this.pointArray, this.nodeArray, LeftChildIndex(this.Index))
                     : null;
 
@@ -42,7 +42,7 @@ namespace SuperClusterKDTree.Utilities
         /// </summary>
         internal BinaryTreeNavigator<TPoint, TNode> Right
                =>
-                   RightChildIndex(this.Index) < this.pointArray.Length - 1
+                   RightChildIndex(this.Index) < this.pointArray.Count - 1
                        ? new BinaryTreeNavigator<TPoint, TNode>(this.pointArray, this.nodeArray, RightChildIndex(this.Index))
                        : null;
 
@@ -67,7 +67,7 @@ namespace SuperClusterKDTree.Utilities
         /// <param name="pointArray">The point array backing the binary tree.</param>
         /// <param name="nodeArray">The node array corresponding to the point array.</param>
         /// <param name="index">The index of the node of interest in the pointArray. If not given, the node navigator start at the 0 index (the root of the tree).</param>
-        internal BinaryTreeNavigator(TPoint[] pointArray, TNode[] nodeArray, int index = 0)
+        internal BinaryTreeNavigator(IList<TPoint> pointArray, IList<TNode> nodeArray, int index = 0)
         {
             this.Index = index;
             this.pointArray = pointArray;

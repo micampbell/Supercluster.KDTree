@@ -48,12 +48,12 @@ namespace SuperClusterKDTree
         /// <summary>
         /// The array in which the binary tree is stored. Enumerating this array is a level-order traversal of the tree.
         /// </summary>
-        public IReadOnlyList<TDimension>[] InternalPointArray { get; }
+        public IList<IReadOnlyList<TDimension>> InternalPointArray { get; }
 
         /// <summary>
         /// The array in which the node objects are stored. There is a one-to-one correspondence with this array and the <see cref="InternalPointArray"/>.
         /// </summary>
-        public TNode[] InternalNodeArray { get; }
+        public IList<TNode> InternalNodeArray { get; }
 
         /// <summary>
         /// The metric function used to calculate distance between points.
@@ -91,8 +91,8 @@ namespace SuperClusterKDTree
         /// <param name="searchWindowMaxValue">The maximum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MaxValue". All numeric structs have this field.</param>
         public KDTree(
             int dimensions,
-            IReadOnlyList<TDimension>[] points,
-            TNode[] nodes,
+           IList<IReadOnlyList<TDimension>> points,
+            IList<TNode> nodes,
             Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TPriority> metric,
             TDimension searchWindowMinValue = default,
             TDimension searchWindowMaxValue = default)
@@ -110,12 +110,12 @@ namespace SuperClusterKDTree
 
             // Calculate the number of nodes needed to contain the binary tree.
             // This is equivalent to finding the power of 2 greater than the number of points
-            var elementCount = (int)Math.Pow(2, (int)(Math.Log(points.Length) / Math.Log(2)) + 1);
+            var elementCount = (int)Math.Pow(2, (int)(Math.Log(points.Count) / Math.Log(2)) + 1);
             this.Dimensions = dimensions;
             this.InternalPointArray = Enumerable.Repeat(default(IReadOnlyList<TDimension>), elementCount).ToArray();
             this.InternalNodeArray = Enumerable.Repeat(default(TNode), elementCount).ToArray();
             this.Metric = metric;
-            this.Count = points.Length;
+            this.Count = points.Count;
             this.GenerateTree(0, 0, points, nodes);
         }
 
@@ -178,7 +178,7 @@ namespace SuperClusterKDTree
         private void GenerateTree(
             int index,
             int dim,
-            IReadOnlyCollection<IReadOnlyList<TDimension>> points,
+            IList<IReadOnlyList<TDimension>> points,
             IEnumerable<TNode> nodes)
         {
             // See wikipedia for a good explanation kd-tree construction.
@@ -269,7 +269,7 @@ namespace SuperClusterKDTree
             BoundedPriorityList<int, TPriority> nearestNeighbors,
             TPriority maxSearchRadiusSquared)
         {
-            if (this.InternalPointArray.Length <= nodeIndex || nodeIndex < 0
+            if (this.InternalPointArray.Count <= nodeIndex || nodeIndex < 0
                 || this.InternalPointArray[nodeIndex] == null)
             {
                 return;
