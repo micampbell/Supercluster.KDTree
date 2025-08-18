@@ -11,8 +11,8 @@
         /// </summary>
         ManhattanDistance,
         /// <summary>
-        /// AKA "L2 Distance", "Euclidean Distance"
-        /// This is the sum squared squared differences of the coordinates.
+        /// AKA "L2 Distance", "Straightline Distance Squared"
+        /// This is the sum of the squared differences of the coordinates.
         /// It does NOT take the square root (in order to be faster).
         /// But if you do, then you get the straight-line distance between two points in Euclidean space.
         /// </summary>

@@ -139,31 +139,19 @@ namespace SuperClusterKDTree
         /// </summary>
         /// <param name="center">The center of the hyper-sphere</param>
         /// <param name="radius">The radius of the hyper-sphere</param>
-        /// <param name="neighboors">The number of numNeighbors to return.</param>
+        /// <param name="numNeighbors">The number of numNeighbors to return.</param>
         /// <returns>The specified number of closest points in the hyper-sphere</returns>
-        public IEnumerable<(IReadOnlyList<TDimension>, TNode)> RadialSearch(IReadOnlyList<TDimension> center, TPriority radius, int neighboors = -1)
+        public IEnumerable<(IReadOnlyList<TDimension>, TNode)> RadialSearch(IReadOnlyList<TDimension> center, TPriority radius, int numNeighbors = -1)
         {
-            var nearestNeighbors = new BoundedPriorityList<int, TPriority>(this.Count);
-            if (neighboors == -1)
-            {
-                this.SearchForNearestNeighbors(
-                    0,
-                    center,
-                    HyperRect<TDimension>.Infinite(this.Dimensions, this.MaxValue, this.MinValue),
-                    0,
-                    nearestNeighbors,
-                    radius);
-            }
-            else
-            {
-                this.SearchForNearestNeighbors(
-                    0,
-                    center,
-                    HyperRect<TDimension>.Infinite(this.Dimensions, this.MaxValue, this.MinValue),
-                    0,
-                    nearestNeighbors,
-                    radius);
-            }
+            var nearestNeighbors = (numNeighbors == -1) ? new BoundedPriorityList<int, TPriority>(this.Count)
+                                                        : new BoundedPriorityList<int, TPriority>(numNeighbors, true);
+            this.SearchForNearestNeighbors(
+                0,
+                center,
+                HyperRect<TDimension>.Infinite(this.Dimensions, this.MaxValue, this.MinValue),
+                0,
+                nearestNeighbors,
+                radius);
 
             return ToResultSet(nearestNeighbors);
         }
@@ -350,7 +338,7 @@ namespace SuperClusterKDTree
         /// and returns the points and nodes.
         /// </summary>
         /// <param name="list">The <see cref="BoundedPriorityList{TElement,TPriority}"/>.</param>
-         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IEnumerable<(IReadOnlyList<TDimension>, TNode)> ToResultSet(BoundedPriorityList<int, TPriority> list)
         {
             for (var i = 0; i < list.Count; i++)

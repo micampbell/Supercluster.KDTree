@@ -5,17 +5,6 @@
     public static class Utilities
     {
         #region Metrics
-        public static Func<IReadOnlyList<float>, IReadOnlyList<float>, double> L2Norm_Squared_Float = (x, y) =>
-        {
-            float dist = 0f;
-            for (int i = 0; i < x.Count; i++)
-            {
-                dist += (x[i] - y[i]) * (x[i] - y[i]);
-            }
-
-            return dist;
-        };
-
         public static Func<IReadOnlyList<double>, IReadOnlyList<double>, double> L2Norm_Squared_Double = (x, y) =>
         {
             double dist = 0f;
@@ -23,7 +12,6 @@
             {
                 dist += (x[i] - y[i]) * (x[i] - y[i]);
             }
-
             return dist;
         };
         #endregion
@@ -40,51 +28,7 @@
                 var array = new double[dimensions];
                 for (var j = 0; j < dimensions; j++)
                 {
-                    array[j] = random.NextDouble() * range;
-                }
-                data.Add(array);
-            }
-
-            return data.ToArray();
-        }
-
-        public static double[][] GenerateDoubles(int points, double range)
-        {
-            var data = new List<double[]>();
-            var random = new Random();
-
-            for (int i = 0; i < points; i++)
-            {
-                data.Add(new double[] { (random.NextDouble() * range), (random.NextDouble() * range) });
-            }
-
-            return data.ToArray();
-        }
-
-        public static float[][] GenerateFloats(int points, double range)
-        {
-            var data = new List<float[]>();
-            var random = new Random();
-
-            for (int i = 0; i < points; i++)
-            {
-                data.Add(new float[] { (float)(random.NextDouble() * range), (float)(random.NextDouble() * range) });
-            }
-
-            return data.ToArray();
-        }
-
-        public static float[][] GenerateFloats(int points, double range, int dimensions)
-        {
-            var data = new List<float[]>();
-            var random = new Random();
-
-            for (var i = 0; i < points; i++)
-            {
-                var array = new float[dimensions];
-                for (var j = 0; j < dimensions; j++)
-                {
-                    array[j] = (float)(random.NextDouble() * range);
+                    array[j] = 2 * random.NextDouble() * range - range;
                 }
                 data.Add(array);
             }
@@ -104,87 +48,46 @@
         /// <param name="point"></param>
         /// <param name="metric"></param>
         /// <returns></returns>
-        public static T[] LinearSearch<T>(T[][] data, T[] point, Func<T[], T[], float> metric)
+
+        public static (TPoint[], TNode)[] LinearSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target,
+            Func<TPoint[], TPoint[], double> metric, int numToKeep)
         {
-            var bestDist = Double.PositiveInfinity;
-            T[] bestPoint = null;
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                var currentDist = metric(point, data[i]);
-                if (bestDist > currentDist)
-                {
-                    bestDist = currentDist;
-                    bestPoint = data[i];
-                }
-            }
-
-            return bestPoint;
-        }
-
-        public static T[] LinearSearch<T>(T[][] data, T[] point, Func<T[], T[], double> metric)
-        {
-            var bestDist = Double.PositiveInfinity;
-            T[] bestPoint = null;
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                var currentDist = metric(point, data[i]);
-                if (bestDist > currentDist)
-                {
-                    bestDist = currentDist;
-                    bestPoint = data[i];
-                }
-            }
-
-            return bestPoint;
-        }
-
-        public static (TPoint[], TNode) LinearSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target, Func<TPoint[], TPoint[], double> metric)
-        {
-            var bestIndex = 0;
-            var bestDist = Double.MaxValue;
+            var closestPoints = new SortedList<double, (TPoint[], TNode)>(numToKeep);
+            var cutOffDist = double.MaxValue;
 
             for (int i = 0; i < points.Length; i++)
             {
                 var currentDist = metric(points[i], target);
-                if (bestDist > currentDist)
+                if (currentDist <= cutOffDist)
                 {
-                    bestDist = currentDist;
-                    bestIndex = i;
+                    if (closestPoints.Count == numToKeep)
+                    {
+                        closestPoints.RemoveAt(closestPoints.Count - 1);
+                        cutOffDist = Math.Max(closestPoints.Keys.Last(), currentDist);
+                    }
+                    closestPoints.Add(currentDist, (points[i], nodes[i]));
                 }
             }
-
-            return (points[bestIndex], nodes[bestIndex]);
+            return closestPoints.Values.ToArray();
         }
 
 
-        public static T[][] LinearRadialSearch<T>(T[][] data, T[] point, Func<T[], T[], double> metric, double radius)
+
+        public static (TPoint[], TNode)[] LinearRadialSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target,
+            Func<TPoint[], TPoint[], double> metric, double radius, int numToKeep = -1)
         {
-            var pointsInRadius = new List<T[]>();
-            for (int i = 0; i < data.Length; i++)
-            {
-                var currentDist = metric(point, data[i]);
-                if (radius >= currentDist)
-                    pointsInRadius.Add(data[i]);
-            }
-
-            return pointsInRadius.ToArray();
-        }
-
-
-        public static (TPoint[], TNode)[] LinearRadialSearch<TPoint, TNode>(TPoint[][] points, TNode[] nodes, TPoint[] target, Func<TPoint[], TPoint[], double> metric, double radius)
-        {
-            var pointsInRadius = new SortedList<double,(TPoint[], TNode)>();
+            var pointsInRadius = numToKeep < 0 ? new SortedList<double, (TPoint[], TNode)>() :
+                new SortedList<double, (TPoint[], TNode)>(numToKeep + 1);
             for (int i = 0; i < points.Length; i++)
             {
                 var currentDist = metric(target, points[i]);
                 if (radius >= currentDist)
                 {
-                    pointsInRadius.Add(currentDist,(points[i], nodes[i]));
+                    pointsInRadius.Add(currentDist, (points[i], nodes[i]));
+                    if (numToKeep >= 0 && pointsInRadius.Count > numToKeep)
+                        pointsInRadius.RemoveAt(pointsInRadius.Count - 1);
                 }
             }
-
             return pointsInRadius.Values.ToArray();
         }
 
