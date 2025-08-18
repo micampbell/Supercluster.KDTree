@@ -20,6 +20,10 @@
         /// <summary>
         /// Chebyshev Distance, also known as "L∞ Distance" or "Maximum Metric". This is the maximum 
         /// absolute difference between the coordinates.
-        ChebyshevDistance
+        ChebyshevDistance,
+        /// <summary>
+        /// Cosine Distance is 1 - S_c where S_c is the cosine similarity
+        /// see: https://en.wikipedia.org/wiki/Cosine_similarity
+        CosineDistance
     }
 }
