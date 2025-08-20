@@ -215,7 +215,7 @@ namespace SuperClusterKDTree
                 rightPoints.Length);
             Array.Copy(sortedPoints.Select(z => z.Node).ToArray(), medianPointIdx + 1, rightNodes, 0, rightNodes.Length);
 
-            // We new recurse, passing the left and right arrays for arguments.
+            // We now recurse, passing the left and right arrays for arguments.
             // The current node's left and right values become the "roots" for
             // each recursion call. We also forward cycle to the next dimension.
             var nextDim = (dim + 1) % this.Dimensions; // select next dimension
