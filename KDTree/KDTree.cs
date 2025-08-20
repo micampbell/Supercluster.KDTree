@@ -91,7 +91,7 @@ namespace SuperClusterKDTree
         /// <param name="searchWindowMaxValue">The maximum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MaxValue". All numeric structs have this field.</param>
         public KDTree(
             int dimensions,
-           IList<IReadOnlyList<TDimension>> points,
+            IList<IReadOnlyList<TDimension>> points,
             IList<TNode> nodes,
             Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TPriority> metric,
             TDimension searchWindowMinValue = default,
@@ -116,7 +116,7 @@ namespace SuperClusterKDTree
             this.InternalNodeArray = Enumerable.Repeat(default(TNode), elementCount).ToArray();
             this.Metric = metric;
             this.Count = points.Count;
-            this.GenerateTree(0, 0, points, nodes);
+            this.GenerateTree(0, 0, points.ToArray(), nodes.ToArray());
         }
 
         /// <summary>
@@ -166,77 +166,70 @@ namespace SuperClusterKDTree
         private void GenerateTree(
             int index,
             int dim,
-            IList<IReadOnlyList<TDimension>> points,
-            IEnumerable<TNode> nodes)
+            ReadOnlySpan<IReadOnlyList<TDimension>> points,
+            ReadOnlySpan<TNode> nodes)
         {
-            // See wikipedia for a good explanation kd-tree construction.
-            // https://en.wikipedia.org/wiki/K-d_tree
-
-            // zip both lists so we can sort nodes according to points
-            var zippedList = points.Zip(nodes, (p, n) => new { Point = p, Node = n });
-
-            // sort the points along the current dimension
-            var sortedPoints = zippedList.OrderBy(z => z.Point[dim]).ToArray();
-
-            // get the point which has the median value of the current dimension.
-            var medianPoint = sortedPoints[points.Count / 2];
-            var medianPointIdx = sortedPoints.Length / 2;
-
-            // The point with the median value all the current dimension now becomes the value of the current tree node
-            // The previous node becomes the parents of the current node.
-            this.InternalPointArray[index] = medianPoint.Point;
-            this.InternalNodeArray[index] = medianPoint.Node;
-
-            // We now split the sorted points into 2 groups
-            // 1st group: points before the median
-            var leftPoints = new TDimension[medianPointIdx][];
-            var leftNodes = new TNode[medianPointIdx];
-            Array.Copy(sortedPoints.Select(z => z.Point).ToArray(), leftPoints, leftPoints.Length);
-            Array.Copy(sortedPoints.Select(z => z.Node).ToArray(), leftNodes, leftNodes.Length);
-
-            // 2nd group: Points after the median
-            var rightPoints = new TDimension[sortedPoints.Length - (medianPointIdx + 1)][];
-            var rightNodes = new TNode[sortedPoints.Length - (medianPointIdx + 1)];
-            Array.Copy(
-                sortedPoints.Select(z => z.Point).ToArray(),
-                medianPointIdx + 1,
-                rightPoints,
-                0,
-                rightPoints.Length);
-            Array.Copy(sortedPoints.Select(z => z.Node).ToArray(), medianPointIdx + 1, rightNodes, 0, rightNodes.Length);
-
-            // We new recurse, passing the left and right arrays for arguments.
-            // The current node's left and right values become the "roots" for
-            // each recursion call. We also forward cycle to the next dimension.
-            var nextDim = (dim + 1) % this.Dimensions; // select next dimension
-
-            // We only need to recurse if the point array contains more than one point
-            // If the array has no points then the node stay a null value
-            if (leftPoints.Length <= 1)
+            // Create array of pairs for sorting
+            var pairs = new PointNodePair[points.Length];
+            for (int i = 0; i < points.Length; i++)
             {
-                if (leftPoints.Length == 1)
+                pairs[i] = new PointNodePair(points[i], nodes[i]);
+            }
+
+            // Sort by current dimension
+            Array.Sort(pairs, (a, b) => a.Point[dim].CompareTo(b.Point[dim]));
+
+            var medianIdx = points.Length / 2;
+            var medianPair = pairs[medianIdx];
+
+            // Store current node
+            this.InternalPointArray[index] = medianPair.Point;
+            this.InternalNodeArray[index] = medianPair.Node;
+
+            var nextDim = (dim + 1) % this.Dimensions;
+
+            // Process left branch using spans
+            if (medianIdx > 0)
+            {
+                var leftSpan = pairs.AsSpan(0, medianIdx);
+                if (leftSpan.Length == 1)
                 {
-                    this.InternalPointArray[LeftChildIndex(index)] = leftPoints[0];
-                    this.InternalNodeArray[LeftChildIndex(index)] = leftNodes[0];
+                    this.InternalPointArray[LeftChildIndex(index)] = leftSpan[0].Point;
+                    this.InternalNodeArray[LeftChildIndex(index)] = leftSpan[0].Node;
+                }
+                else
+                {
+                    var leftPoints = new IReadOnlyList<TDimension>[leftSpan.Length];
+                    var leftNodes = new TNode[leftSpan.Length];
+                    for (int i = 0; i < leftSpan.Length; i++)
+                    {
+                        leftPoints[i] = leftSpan[i].Point;
+                        leftNodes[i] = leftSpan[i].Node;
+                    }
+                    this.GenerateTree(LeftChildIndex(index), nextDim, leftPoints, leftNodes);
                 }
             }
-            else
-            {
-                this.GenerateTree(LeftChildIndex(index), nextDim, leftPoints, leftNodes);
-            }
 
-            // Do the same for the right points
-            if (rightPoints.Length <= 1)
+            // Process right branch using spans
+            if (medianIdx < pairs.Length - 1)
             {
-                if (rightPoints.Length == 1)
+                var rightSpan = pairs.AsSpan(medianIdx + 1);
+                if (rightSpan.Length == 1)
                 {
-                    this.InternalPointArray[RightChildIndex(index)] = rightPoints[0];
-                    this.InternalNodeArray[RightChildIndex(index)] = rightNodes[0];
+                    this.InternalPointArray[RightChildIndex(index)] = rightSpan[0].Point;
+                    this.InternalNodeArray[RightChildIndex(index)] = rightSpan[0].Node;
                 }
-            }
-            else
-            {
-                this.GenerateTree(RightChildIndex(index), nextDim, rightPoints, rightNodes);
+                else
+                {
+                    var rightPoints = new IReadOnlyList<TDimension>[rightSpan.Length];
+                    var rightNodes = new TNode[rightSpan.Length];
+                    for (int i = 0; i < rightSpan.Length; i++)
+                    {
+                        rightPoints[i] = rightSpan[i].Point;
+                        rightNodes[i] = rightSpan[i].Node;
+                    }
+                    this.GenerateTree(RightChildIndex(index), nextDim, rightPoints, rightNodes);
+                }
             }
         }
 
@@ -294,7 +287,7 @@ namespace SuperClusterKDTree
 
             // Walk down into the further branch but only if our capacity hasn't been reached
             // OR if there's a region in the further rectangle that's closer to the target than our
-            // current furtherest nearest neighbor
+            // current furtherst nearest neighbor
             var closestPointInFurtherRect = furtherRect.GetClosestPoint(target);
             var distanceSquaredToTarget = this.Metric(closestPointInFurtherRect, target);
 
@@ -344,5 +337,7 @@ namespace SuperClusterKDTree
             for (var i = 0; i < list.Count; i++)
                 yield return new(InternalPointArray[list[i]], InternalNodeArray[list[i]]);
         }
+
+        private readonly record struct PointNodePair(IReadOnlyList<TDimension> Point, TNode Node);
     }
 }
