@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SuperClusterKDTreeMedian.Utilities
@@ -15,6 +16,7 @@ namespace SuperClusterKDTreeMedian.Utilities
         /// <param name="array">The array.</param>
         /// <returns>System.Double.</returns>
         /// <value>The median.</value>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TDimension GetNthPosition<TDimension>(IEnumerable<TDimension> numbers, int index, int numCount)
         where TDimension : IComparable<TDimension>
         {
@@ -44,6 +46,7 @@ namespace SuperClusterKDTreeMedian.Utilities
                     start = pivotIndex + 1;
             }
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void swap<TDimension>(TDimension[] array, int i, int j)
         where TDimension : IComparable<TDimension>
         {

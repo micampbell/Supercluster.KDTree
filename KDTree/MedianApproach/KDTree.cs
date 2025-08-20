@@ -173,6 +173,7 @@ namespace SuperClusterKDTreeMedian
         /// <param name="dim">The current splitting dimension.</param>
         /// <param name="points">The set of points remaining to be added to the kd-tree</param>
         /// <param name="nodes">The set of nodes RE</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GenerateTree(
             int index,
             int dim,
