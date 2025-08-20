@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KDTree\KDTree.csproj" />
+    <ProjectReference Include="..\KDTreeOLD\KDTree.csproj" />
   </ItemGroup>
 
 </Project>
