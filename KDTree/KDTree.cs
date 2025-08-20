@@ -91,8 +91,8 @@ namespace SuperClusterKDTree
         /// <param name="searchWindowMaxValue">The maximum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MaxValue". All numeric structs have this field.</param>
         public KDTree(
             int dimensions,
-           IList<IReadOnlyList<TDimension>> points,
-            IList<TNode> nodes,
+            IEnumerable<IReadOnlyList<TDimension>> points, int pointsCount,
+            IEnumerable<TNode> nodes,
             Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TPriority> metric,
             TDimension searchWindowMinValue = default,
             TDimension searchWindowMaxValue = default)
@@ -110,14 +110,24 @@ namespace SuperClusterKDTree
 
             // Calculate the number of nodes needed to contain the binary tree.
             // This is equivalent to finding the power of 2 greater than the number of points
-            var elementCount = (int)Math.Pow(2, (int)(Math.Log(points.Count) / Math.Log(2)) + 1);
+            var elementCount = (int)Math.Pow(2, (int)(Math.Log(pointsCount) / Math.Log(2)) + 1);
             this.Dimensions = dimensions;
             this.InternalPointArray = Enumerable.Repeat(default(IReadOnlyList<TDimension>), elementCount).ToArray();
             this.InternalNodeArray = Enumerable.Repeat(default(TNode), elementCount).ToArray();
             this.Metric = metric;
-            this.Count = points.Count;
-            this.GenerateTree(0, 0, points, nodes);
+            this.Count = pointsCount;
+            this.GenerateTree(0, 0, points, pointsCount, nodes);
         }
+
+
+        public KDTree(int dimensions, ICollection<IReadOnlyList<TDimension>> points, IEnumerable<TNode> nodes, Func<IReadOnlyList<TDimension>,
+            IReadOnlyList<TDimension>, TPriority> metric, TDimension searchWindowMinValue = default(TDimension), TDimension searchWindowMaxValue = default(TDimension))
+            : this(dimensions, points, points.Count, nodes, metric, searchWindowMinValue, searchWindowMaxValue)
+        {
+        }
+
+
+
 
         /// <summary>
         /// Finds the nearest numNeighbors in the <see cref="KDTree{TDimension,TNode}"/> of the given <paramref name="point"/>.
@@ -166,7 +176,7 @@ namespace SuperClusterKDTree
         private void GenerateTree(
             int index,
             int dim,
-            IList<IReadOnlyList<TDimension>> points,
+            IEnumerable<IReadOnlyList<TDimension>> points, int pointsCount,
             IEnumerable<TNode> nodes)
         {
             // See wikipedia for a good explanation kd-tree construction.
@@ -179,7 +189,7 @@ namespace SuperClusterKDTree
             var sortedPoints = zippedList.OrderBy(z => z.Point[dim]).ToArray();
 
             // get the point which has the median value of the current dimension.
-            var medianPoint = sortedPoints[points.Count / 2];
+            var medianPoint = sortedPoints[pointsCount / 2];
             var medianPointIdx = sortedPoints.Length / 2;
 
             // The point with the median value all the current dimension now becomes the value of the current tree node
@@ -222,7 +232,7 @@ namespace SuperClusterKDTree
             }
             else
             {
-                this.GenerateTree(LeftChildIndex(index), nextDim, leftPoints, leftNodes);
+                this.GenerateTree(LeftChildIndex(index), nextDim, leftPoints, leftPoints.Length, leftNodes);
             }
 
             // Do the same for the right points
@@ -236,7 +246,7 @@ namespace SuperClusterKDTree
             }
             else
             {
-                this.GenerateTree(RightChildIndex(index), nextDim, rightPoints, rightNodes);
+                this.GenerateTree(RightChildIndex(index), nextDim, rightPoints, rightPoints.Length, rightNodes);
             }
         }
 
