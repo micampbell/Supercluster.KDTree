@@ -2,16 +2,16 @@
 // Copyright (c) Eric Regina. All rights reserved.
 // </copyright>
 
+using SuperClusterKDTree.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 namespace SuperClusterKDTree
 {
-    using SuperClusterKDTree.Utilities;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Numerics;
-    using System.Runtime.CompilerServices;
-    using static Utilities.BinaryTreeNavigation;
-
     /// <summary>
     /// Represents a KD-Tree. KD-Trees are used for fast spatial searches. Searching in a
     /// balanced KD-Tree is O(log n) where linear search is O(n). Points in the KD-Tree are
@@ -143,8 +143,10 @@ namespace SuperClusterKDTree
         /// <returns>The specified number of closest points in the hyper-sphere</returns>
         public IEnumerable<(IReadOnlyList<TDimension>, TNode)> RadialSearch(IReadOnlyList<TDimension> center, TPriority radius, int numNeighbors = -1)
         {
-            var nearestNeighbors = (numNeighbors == -1) ? new BoundedPriorityList<int, TPriority>(this.Count)
-                                                        : new BoundedPriorityList<int, TPriority>(numNeighbors, true);
+            var nearestNeighbors = (numNeighbors == -1) 
+                ? new BoundedPriorityList<int, TPriority>(this.Count)
+                : new BoundedPriorityList<int, TPriority>(numNeighbors, true);
+
             this.SearchForNearestNeighbors(
                 0,
                 center,
@@ -194,8 +196,8 @@ namespace SuperClusterKDTree
                 var leftSpan = pairs.AsSpan(0, medianIdx);
                 if (leftSpan.Length == 1)
                 {
-                    this.InternalPointArray[LeftChildIndex(index)] = leftSpan[0].Point;
-                    this.InternalNodeArray[LeftChildIndex(index)] = leftSpan[0].Node;
+                    this.InternalPointArray[BinaryTreeNavigation.LeftChildIndex(index)] = leftSpan[0].Point;
+                    this.InternalNodeArray[BinaryTreeNavigation.LeftChildIndex(index)] = leftSpan[0].Node;
                 }
                 else
                 {
@@ -206,7 +208,7 @@ namespace SuperClusterKDTree
                         leftPoints[i] = leftSpan[i].Point;
                         leftNodes[i] = leftSpan[i].Node;
                     }
-                    this.GenerateTree(LeftChildIndex(index), nextDim, leftPoints, leftNodes);
+                    this.GenerateTree(BinaryTreeNavigation.LeftChildIndex(index), nextDim, leftPoints, leftNodes);
                 }
             }
 
@@ -216,8 +218,8 @@ namespace SuperClusterKDTree
                 var rightSpan = pairs.AsSpan(medianIdx + 1);
                 if (rightSpan.Length == 1)
                 {
-                    this.InternalPointArray[RightChildIndex(index)] = rightSpan[0].Point;
-                    this.InternalNodeArray[RightChildIndex(index)] = rightSpan[0].Node;
+                    this.InternalPointArray[BinaryTreeNavigation.RightChildIndex(index)] = rightSpan[0].Point;
+                    this.InternalNodeArray[BinaryTreeNavigation.RightChildIndex(index)] = rightSpan[0].Node;
                 }
                 else
                 {
@@ -228,7 +230,7 @@ namespace SuperClusterKDTree
                         rightPoints[i] = rightSpan[i].Point;
                         rightNodes[i] = rightSpan[i].Node;
                     }
-                    this.GenerateTree(RightChildIndex(index), nextDim, rightPoints, rightNodes);
+                    this.GenerateTree(BinaryTreeNavigation.RightChildIndex(index), nextDim, rightPoints, rightNodes);
                 }
             }
         }
@@ -258,23 +260,25 @@ namespace SuperClusterKDTree
 
             // Work out the current dimension
             var dim = dimension % this.Dimensions;
+            var currentPoint = this.InternalPointArray[nodeIndex];
 
-            // Split our hyper-rectangle into 2 sub rectangles along the current
-            // node's point on the current dimension
+            // Create clone using efficient Span operations
             var leftRect = rect.Clone();
-            leftRect.MaxPoint[dim] = this.InternalPointArray[nodeIndex][dim];
+            leftRect.SetMaxPoint(dim, currentPoint[dim]);
 
             var rightRect = rect.Clone();
-            rightRect.MinPoint[dim] = this.InternalPointArray[nodeIndex][dim];
+            rightRect.SetMinPoint(dim, currentPoint[dim]);
 
             // Determine which side the target resides in
-            var compare = target[dim].CompareTo(this.InternalPointArray[nodeIndex][dim]);
+            var compare = target[dim].CompareTo(currentPoint[dim]);
 
             var nearerRect = compare <= 0 ? leftRect : rightRect;
             var furtherRect = compare <= 0 ? rightRect : leftRect;
 
-            var nearerNode = compare <= 0 ? LeftChildIndex(nodeIndex) : RightChildIndex(nodeIndex);
-            var furtherNode = compare <= 0 ? RightChildIndex(nodeIndex) : LeftChildIndex(nodeIndex);
+            var nearerNode = compare <= 0 ? BinaryTreeNavigation.LeftChildIndex(nodeIndex) 
+                : BinaryTreeNavigation.RightChildIndex(nodeIndex);
+            var furtherNode = compare <= 0 ? BinaryTreeNavigation.RightChildIndex(nodeIndex) 
+                : BinaryTreeNavigation.LeftChildIndex(nodeIndex);
 
             // Move down into the nearer branch
             this.SearchForNearestNeighbors(
@@ -334,8 +338,12 @@ namespace SuperClusterKDTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IEnumerable<(IReadOnlyList<TDimension>, TNode)> ToResultSet(BoundedPriorityList<int, TPriority> list)
         {
+            var results = new (IReadOnlyList<TDimension>, TNode)[list.Count];
             for (var i = 0; i < list.Count; i++)
-                yield return new(InternalPointArray[list[i]], InternalNodeArray[list[i]]);
+            {
+                results[i] = new(InternalPointArray[list[i]], InternalNodeArray[list[i]]);
+            }
+            return results;
         }
 
         private readonly record struct PointNodePair(IReadOnlyList<TDimension> Point, TNode Node);
