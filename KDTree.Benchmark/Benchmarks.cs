@@ -2,8 +2,7 @@
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using SuperclusterKDTree;
-using SuperclusterKDTree.Utilities;
+
 
 namespace KDTree.Benchmark
 {
@@ -27,8 +26,8 @@ namespace KDTree.Benchmark
         private double[][] _points;
         private string[] _nodes;
         private double[][] _queryPoints;
-        private SuperclusterKDTree.KDTree<double, string> _kdTree;
-        private SuperclusterKDTree.KDTreePQ<double, string> _kdTreePQ;
+        private SuperClusterKDTree.KDTree<double, double, string> _kdTree;
+        private SuperclusterKDTreeSpan.KDTreePQ<double, string> _kdTreePQ;
         
         // Metrics
         private static readonly Func<double[], double[], double> L2Metric = (x, y) =>
@@ -73,13 +72,13 @@ namespace KDTree.Benchmark
             }
 
             // Pre-build trees for search benchmarks
-            _kdTree = new Supercluster.KDTree.KDTree<double, string>(
+            _kdTree = new SuperClusterKDTree.KDTree<double, double, string>(
                 Dimensions, 
                 _points, 
                 _nodes, 
                 L2Metric);
 
-            _kdTreePQ = new Supercluster.KDTree.KDTreePQ<double, string>(
+            _kdTreePQ = new SuperclusterKDTreeSpan.KDTree<double, double, string>(
                 Dimensions, 
                 _points, 
                 _nodes, 
@@ -90,9 +89,9 @@ namespace KDTree.Benchmark
 
         [Benchmark]
         [BenchmarkCategory("Construction")]
-        public Supercluster.KDTree.KDTree<double, string> KDTree_Construction()
+        public SuperClusterKDTree.KDTree<double, string> KDTree_Construction()
         {
-            return new Supercluster.KDTree.KDTree<double, string>(
+            return new SuperClusterKDTree.KDTree<double, string>(
                 Dimensions,
                 _points,
                 _nodes,
@@ -101,9 +100,9 @@ namespace KDTree.Benchmark
 
         [Benchmark]
         [BenchmarkCategory("Construction")]
-        public Supercluster.KDTree.KDTreePQ<double, string> KDTreePQ_Construction()
+        public SuperClusterKDTree.KDTreePQ<double, string> KDTreePQ_Construction()
         {
-            return new Supercluster.KDTree.KDTreePQ<double, string>(
+            return new SuperClusterKDTree.KDTreePQ<double, string>(
                 Dimensions,
                 _points,
                 _nodes,
@@ -276,8 +275,8 @@ namespace KDTree.Benchmark
         private double[][] _points;
         private string[] _nodes;
         private double[][] _queryPoints;
-        private Supercluster.KDTree.KDTree<double, string> _kdTree;
-        private Supercluster.KDTree.KDTreePQ<double, string> _kdTreePQ;
+        private SuperClusterKDTree.KDTree<double, double, string> _kdTree;
+        private SuperclusterKDTreeSpan.KDTree<double, double, string> _kdTreePQ;
 
         private static readonly Func<double[], double[], double> L2Metric = (x, y) =>
         {
@@ -317,15 +316,15 @@ namespace KDTree.Benchmark
                 }
             }
 
-            _kdTree = new Supercluster.KDTree.KDTree<double, string>(Dimensions, _points, _nodes, L2Metric);
-            _kdTreePQ = new Supercluster.KDTree.KDTreePQ<double, string>(Dimensions, _points, _nodes, L2Metric);
+            _kdTree = new SuperClusterKDTree.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
+            _kdTreePQ = new SuperclusterKDTreeSpan.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
         }
 
         [Benchmark]
         [BenchmarkCategory("HighDim")]
         public int KDTree_HighDim_Construction_And_Search()
         {
-            var tree = new Supercluster.KDTree.KDTree<double, string>(Dimensions, _points, _nodes, L2Metric);
+            var tree = new SuperClusterKDTree.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
             int totalResults = 0;
             
             foreach (var query in _queryPoints)
@@ -341,7 +340,7 @@ namespace KDTree.Benchmark
         [BenchmarkCategory("HighDim")]
         public int KDTreePQ_HighDim_Construction_And_Search()
         {
-            var tree = new Supercluster.KDTree.KDTreePQ<double, string>(Dimensions, _points, _nodes, L2Metric);
+            var tree = new SuperClusterKDTreeSpan.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
             int totalResults = 0;
             
             foreach (var query in _queryPoints)
@@ -438,7 +437,7 @@ namespace KDTree.Benchmark
         [BenchmarkCategory("Precision")]
         public int KDTree_Float_Performance()
         {
-            var tree = new Supercluster.KDTree.KDTree<float, string>(Dimensions, _floatPoints, _nodes, FloatL2Metric);
+            var tree = new SuperClusterKDTree.KDTree<float,float, string>(Dimensions, _floatPoints, _nodes, FloatL2Metric);
             int totalResults = 0;
             
             for (int i = 0; i < Math.Min(100, _floatQueryPoints.Length); i++)
@@ -454,7 +453,7 @@ namespace KDTree.Benchmark
         [BenchmarkCategory("Precision")]
         public int KDTree_Double_Performance()
         {
-            var tree = new Supercluster.KDTree.KDTree<double, string>(Dimensions, _doublePoints, _nodes, DoubleL2Metric);
+            var tree = new SuperClusterKDTree.KDTree<double, double, string>(Dimensions, _doublePoints, _nodes, DoubleL2Metric);
             int totalResults = 0;
             
             for (int i = 0; i < Math.Min(100, _doubleQueryPoints.Length); i++)
@@ -470,7 +469,7 @@ namespace KDTree.Benchmark
         [BenchmarkCategory("Precision")]
         public int KDTreePQ_Float_Performance()
         {
-            var tree = new Supercluster.KDTree.KDTreePQ<float, string>(Dimensions, _floatPoints, _nodes, FloatL2Metric);
+            var tree = new SuperClusterKDTree.KDTreePQ<float, string>(Dimensions, _floatPoints, _nodes, FloatL2Metric);
             int totalResults = 0;
             
             for (int i = 0; i < Math.Min(100, _floatQueryPoints.Length); i++)
@@ -486,7 +485,7 @@ namespace KDTree.Benchmark
         [BenchmarkCategory("Precision")]
         public int KDTreePQ_Double_Performance()
         {
-            var tree = new Supercluster.KDTree.KDTreePQ<double, string>(Dimensions, _doublePoints, _nodes, DoubleL2Metric);
+            var tree = new SuperClusterKDTreeSpan.KDTree<double, double, string>(Dimensions, _doublePoints, _nodes, DoubleL2Metric);
             int totalResults = 0;
             
             for (int i = 0; i < Math.Min(100, _doubleQueryPoints.Length); i++)

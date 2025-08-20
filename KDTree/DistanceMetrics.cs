@@ -1,4 +1,4 @@
-﻿namespace SuperClusterKDTree
+﻿namespace SuperClusterKDTreeSpan
 {
     /// <summary>
     /// Some default and common proximity types.

@@ -2,7 +2,7 @@
 // Copyright (c) Eric Regina. All rights reserved.
 // </copyright>
 
-namespace SuperClusterKDTree
+namespace SuperClusterKDTreeSpan
 {
     using System;
     using System.Collections.Generic;

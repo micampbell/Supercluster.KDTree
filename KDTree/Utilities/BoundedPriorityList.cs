@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace SuperClusterKDTree.Utilities
+namespace SuperClusterKDTreeSpan.Utilities
 {
     /// <summary>
     /// A list of limited length that remains sorted by <typeparamref name="TPriority"/>.

@@ -2,7 +2,7 @@
 // Copyright (c) Eric Regina. All rights reserved.
 // </copyright>
 
-using SuperClusterKDTree.Utilities;
+using SuperClusterKDTreeSpan.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace SuperClusterKDTree
+namespace SuperClusterKDTreeSpan
 {
     /// <summary>
     /// Represents a KD-Tree. KD-Trees are used for fast spatial searches. Searching in a

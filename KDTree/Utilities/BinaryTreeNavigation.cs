@@ -3,7 +3,7 @@
 // </copyright>
 using System.Runtime.CompilerServices;
 
-namespace SuperClusterKDTree.Utilities
+namespace SuperClusterKDTreeSpan.Utilities
 {
 
     /// <summary>
