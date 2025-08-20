@@ -173,49 +173,62 @@ namespace SuperClusterKDTree
         /// <param name="dim">The current splitting dimension.</param>
         /// <param name="points">The set of points remaining to be added to the kd-tree</param>
         /// <param name="nodes">The set of nodes RE</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GenerateTree(
             int index,
             int dim,
             IEnumerable<IReadOnlyList<TDimension>> points, int pointsCount,
             IEnumerable<TNode> nodes)
         {
-            // See wikipedia for a good explanation kd-tree construction.
-            // https://en.wikipedia.org/wiki/K-d_tree
-
-            // zip both lists so we can sort nodes according to points
-            var zippedList = points.Zip(nodes, (p, n) => new { Point = p, Node = n });
-
-            // sort the points along the current dimension
-            var sortedPoints = zippedList.OrderBy(z => z.Point[dim]).ToArray();
-
-            // get the point which has the median value of the current dimension.
-            var medianPoint = sortedPoints[pointsCount / 2];
-            var medianPointIdx = sortedPoints.Length / 2;
-
-            // The point with the median value all the current dimension now becomes the value of the current tree node
-            // The previous node becomes the parents of the current node.
-            this.InternalPointArray[index] = medianPoint.Point;
-            this.InternalNodeArray[index] = medianPoint.Node;
+            var isEven = int.IsEvenInteger(pointsCount);
+            var medianIndex = pointsCount / 2;
+            var medianValue // this the 1st enumeration of points
+                = CalcMedian.GetNthPosition(points.Select(p => p[dim]), medianIndex, pointsCount);
 
             // We now split the sorted points into 2 groups
             // 1st group: points before the median
-            var leftPoints = new TDimension[medianPointIdx][];
-            var leftNodes = new TNode[medianPointIdx];
-            Array.Copy(sortedPoints.Select(z => z.Point).ToArray(), leftPoints, leftPoints.Length);
-            Array.Copy(sortedPoints.Select(z => z.Node).ToArray(), leftNodes, leftNodes.Length);
-
+            var leftPoints = new IReadOnlyList<TDimension>[medianIndex];
+            var leftNodes = new TNode[medianIndex];
             // 2nd group: Points after the median
-            var rightPoints = new TDimension[sortedPoints.Length - (medianPointIdx + 1)][];
-            var rightNodes = new TNode[sortedPoints.Length - (medianPointIdx + 1)];
-            Array.Copy(
-                sortedPoints.Select(z => z.Point).ToArray(),
-                medianPointIdx + 1,
-                rightPoints,
-                0,
-                rightPoints.Length);
-            Array.Copy(sortedPoints.Select(z => z.Node).ToArray(), medianPointIdx + 1, rightNodes, 0, rightNodes.Length);
+            var rightPoints = new IReadOnlyList<TDimension>[isEven ? medianIndex - 1 : medianIndex];
+            var rightNodes = new TNode[isEven ? medianIndex - 1 : medianIndex];
 
-            // We now recurse, passing the left and right arrays for arguments.
+            var leftSideFilled = false;
+            var medianFilled = false;
+            var leftIndex = 0;
+            var rightIndex = 0;
+            var nodeEnumerator = nodes.GetEnumerator();
+            foreach (var point in points) // this the 2nd enumeration of points!
+            {
+                if (!nodeEnumerator.MoveNext())
+                    throw new InvalidOperationException("The number of nodes is less than the number of points: the collections should be the same size.");
+                var node = nodeEnumerator.Current;
+                var pointValue = point[dim];
+                var compare = pointValue.CompareTo(medianValue);
+                if (!medianFilled && compare == 0)
+                {
+                    InternalPointArray[index] = point;
+                    InternalNodeArray[index] = node;
+                    medianFilled=true;
+                }
+                else if (!leftSideFilled && compare <= 0)
+                {
+                    // point is on the left side of the median
+                    leftPoints[leftIndex] = point;
+                    leftNodes[leftIndex] = node;
+                    leftIndex++;
+                    leftSideFilled = leftIndex == medianIndex;
+                }
+                else //if (compare > 0 || (!rightSideFilled && compare == 0))
+                {
+                    // point is on the right side of the median
+                    rightPoints[rightIndex] = point;
+                    rightNodes[rightIndex] = node;
+                    rightIndex++;
+                    //rightSideFilled = true;
+                }
+            }
+            // We new recurse, passing the left and right arrays for arguments.
             // The current node's left and right values become the "roots" for
             // each recursion call. We also forward cycle to the next dimension.
             var nextDim = (dim + 1) % this.Dimensions; // select next dimension

@@ -28,7 +28,7 @@ namespace KDTree.Benchmark
         private string[] _nodes;
         private IReadOnlyList<double>[] _queryPoints;
         private SuperClusterKDTree.KDTree<double, double, string> _kdTree;
-        private SuperClusterKDTreeMedian.KDTree<double, double, string> _kdTreePQ;
+        private SuperClusterKDTree.KDTree<double, double, string> _kdTreePQ;
 
         // Metrics
         private static readonly Func<IReadOnlyList<double>, IReadOnlyList<double>, double> L2Metric = (x, y) =>
@@ -79,7 +79,7 @@ namespace KDTree.Benchmark
                 _nodes,
                 L2Metric);
 
-            _kdTreePQ = new SuperClusterKDTreeMedian.KDTree<double, double, string>(
+            _kdTreePQ = new SuperClusterKDTree.KDTree<double, double, string>(
                 Dimensions,
                 _points,
                 _nodes,
@@ -101,9 +101,9 @@ namespace KDTree.Benchmark
 
         [Benchmark]
         [BenchmarkCategory("Construction")]
-        public SuperClusterKDTreeMedian.KDTree<double, double, string> KDTreePQ_Construction()
+        public SuperClusterKDTree.KDTree<double, double, string> KDTreePQ_Construction()
         {
-            return new SuperClusterKDTreeMedian.KDTree<double, double, string>(
+            return new SuperClusterKDTree.KDTree<double, double, string>(
                 Dimensions,
                 _points,
                 _nodes,
@@ -246,7 +246,7 @@ namespace KDTree.Benchmark
         public int KDTreePQ_MemoryFootprint()
         {
             // This benchmark helps measure memory allocation patterns
-            var tree = new SuperClusterKDTreeMedian.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
+            var tree = new SuperClusterKDTree.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
 
             // Perform some operations to trigger any lazy allocations
             var result = tree.NearestNeighbors(_queryPoints[0], 1).ToArray();
@@ -277,7 +277,7 @@ namespace KDTree.Benchmark
         private string[] _nodes;
         private IReadOnlyList<double>[] _queryPoints;
         private SuperClusterKDTree.KDTree<double, double, string> _kdTree;
-        private SuperClusterKDTreeMedian.KDTree<double, double, string> _kdTreePQ;
+        private SuperClusterKDTree.KDTree<double, double, string> _kdTreePQ;
 
         private static readonly Func<IReadOnlyList<double>, IReadOnlyList<double>, double> L2Metric = (x, y) =>
         {
@@ -318,7 +318,7 @@ namespace KDTree.Benchmark
             }
 
             _kdTree = new SuperClusterKDTree.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
-            _kdTreePQ = new SuperClusterKDTreeMedian.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
+            _kdTreePQ = new SuperClusterKDTree.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
         }
 
         [Benchmark]
@@ -341,7 +341,7 @@ namespace KDTree.Benchmark
         [BenchmarkCategory("HighDim")]
         public int KDTreePQ_HighDim_Construction_And_Search()
         {
-            var tree = new SuperClusterKDTreeMedian.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
+            var tree = new SuperClusterKDTree.KDTree<double, double, string>(Dimensions, _points, _nodes, L2Metric);
             int totalResults = 0;
 
             foreach (var query in _queryPoints)
@@ -470,7 +470,7 @@ namespace KDTree.Benchmark
         [BenchmarkCategory("Precision")]
         public int KDTreePQ_Float_Performance()
         {
-            var tree = new SuperClusterKDTreeMedian.KDTree<float, float, string>(Dimensions, _floatPoints, _nodes, FloatL2Metric);
+            var tree = new SuperClusterKDTree.KDTree<float, float, string>(Dimensions, _floatPoints, _nodes, FloatL2Metric);
             int totalResults = 0;
 
             for (int i = 0; i < Math.Min(100, _floatQueryPoints.Length); i++)
@@ -486,7 +486,7 @@ namespace KDTree.Benchmark
         [BenchmarkCategory("Precision")]
         public int KDTreePQ_Double_Performance()
         {
-            var tree = new SuperClusterKDTreeMedian.KDTree<double, double, string>(Dimensions, _doublePoints, _nodes, DoubleL2Metric);
+            var tree = new SuperClusterKDTree.KDTree<double, double, string>(Dimensions, _doublePoints, _nodes, DoubleL2Metric);
             int totalResults = 0;
 
             for (int i = 0; i < Math.Min(100, _doubleQueryPoints.Length); i++)

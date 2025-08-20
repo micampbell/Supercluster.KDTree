@@ -3,7 +3,7 @@ namespace KDTreeTests
 {
     using System.Linq;
     using NUnit.Framework;
-    using SuperClusterKDTreeMedian;
+    using SuperClusterKDTree;
 
     [TestFixture]
     public class AccuracyTest

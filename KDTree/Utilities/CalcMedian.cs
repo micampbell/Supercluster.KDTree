@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace SuperClusterKDTreeMedian.Utilities
+namespace SuperClusterKDTree.Utilities
 {
     internal static class CalcMedian
     {
