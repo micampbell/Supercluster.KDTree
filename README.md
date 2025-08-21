@@ -8,7 +8,7 @@ effort is simply updating the code to be more idiomatic C# and to add some addit
 This is a KD-Tree that was originally optimized for machine learning applications, by the original author
 ([Supercluster](https://github.com/eric-regina/Supercluster))
 
-* **The tree is extremely fast for search.** 
+* **The tree is fast in searching, but it is not modifiable.** 
     * For a 10,000 3-nearest-neighbor searches on a 1,000,000 node 2-Dimensional tree using floats is about 7.5 times than the KD-Tree 
 by [CodeandCats](https://github.com/codeandcats) (number based off of a 1,000,000 sample
 independent T-test for mean comparisons, equal variance assumed). 
@@ -17,12 +17,10 @@ independent T-test for mean comparisons, equal variance assumed).
     * The KD-Tree is implemented as an array. Index arithmetic is used to traverse nodes. This is faster (only slightly, but a statistically significant difference)
 than traversing node objects. This also leads to less memory usage.
     * The tree is built in the standard-way using an exact median finding algorithm. 
-This is slower than the [quickselect](https://en.wikipedia.org/wiki/Quickselect) or [median-of-medians](https://en.wikipedia.org/wiki/Median_of_medians) algorithm but is more 
-likely to create a balanced tree. This allows for search time to be as close to O(log n) as possible.
+In this latest fork/version, a median finding approach is implemented to speed up the creation of the KD-Tree, the search times are, of course, unaffected as the resulting tree is the same.
 
-* **There is no delete method.** If you want to change the tree, rebuild it. Many KD-Tree implementations simply
-rebuild the tree to "balance" the tree after deletion. This is because balancing a KD-Tree is much more 
-complicated than AVL or Red-Black trees. There do exist adaptive KD-Trees which auto-balance, look it up if you need one.
+* **There is no delete and add method.** If you want to change the tree, rebuild it. Many KD-Tree implementations simply
+rebuild the tree to "balance" the tree after a CRUD operation. This is because balancing a KD-Tree is much more complicated than AVL or Red-Black trees. There do exist adaptive KD-Trees which auto-balance, but the time to do so may not be worth it. As generation is fairly quick here.
 * **There is no node object used in the KDTree class.** but there is a **NodeNavigator** class which allows you to traverse the tree (or any array) using familiar, left, right, parent properties of a node. 
 * The tree is generic. Only [`IComparable<T>`](https://msdn.microsoft.com/en-us/library/4d7sx9hd.aspx) is required.
 * The tree requires a metric (a distance measure function) `Func`. KD-Trees are spatial data-structures and one only needs a metric function to implicitly define the [metric space](https://en.wikipedia.org/wiki/Metric_space) in which the KD-Tree lives.
@@ -34,7 +32,7 @@ complicated than AVL or Red-Black trees. There do exist adaptive KD-Trees which 
 *  Nuget Package: `Install-Package Supercluster.KDTree.Net`
 
 #### Special Thanks
-* Thanks to [Eric Regina](https://github.com/codeandcats) who did all the hard work 5 years ago
+* Thanks to [Eric Regina](https://github.com/codeandcats) who did all the hard work 5 years ago.
 * Thanks to [CodeandCats](https://github.com/codeandcats) for the original implementation that this was based off. I had fun ~~tearing apart~~ reading your code. ;)
 * Thanks to [Prof. Hanan Samet](http://www.cs.umd.edu/~hjs/) for writing an amazing book on spatial and metric data structures. The book provided much insight and knowledge.
 * Thanks to [César Souza](https://github.com/cesarsouza) for your work on machine learning for .NET. It has inspired me to try and do better!
