@@ -1,4 +1,4 @@
-﻿namespace KDTreeTests
+﻿namespace NearestNeighborSearchTests
 {
     using System.Linq;
 

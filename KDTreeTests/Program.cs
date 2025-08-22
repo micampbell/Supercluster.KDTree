@@ -1,5 +1,7 @@
 ﻿
-namespace KDTreeTests
+using NearestNeighborSearch;
+
+namespace NearestNeighborSearchTests
 {
     internal class Program
     {
@@ -8,8 +10,7 @@ namespace KDTreeTests
         static void Main(string[] args)
         {
             var test = new AccuracyTest();
-            test.FindNearestNeighborTest();
-            test.RadialSearchTest();
+            test.LimitedRadialSearchTest(typeof(LinearSearch));
         }
     }
 }

@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 
-namespace KDTree.Benchmark
+namespace NearestNeighborSearch.Benchmark
 {
     public class Program
     {

@@ -1,43 +1,50 @@
-﻿// <copyright file="KDTree.cs" company="Eric Regina">
-// Copyright (c) Eric Regina. All rights reserved.
-// </copyright>
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
-namespace SuperClusterKDTree
+namespace NearestNeighborSearch
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Numerics;
-    using System.Runtime.CompilerServices;
-
-    public class KDTree
+    /// <summary>
+    /// Some default and common proximity types.
+    /// </summary>
+    public enum DistanceMetrics
     {
-        #region when points are TDimensions
         /// <summary>
-        /// Initializes a new instance of the <see cref="KDTree{TDimension, TNode}"/>.
-        /// This is simpler than the KDTree constructor as the most common use case is
-        /// to have an n-dimension point that is comprised of TDimensions and the
-        /// distance metric is likey the L1, L2 or L∞ norm.
+        /// AKA "L1 Distance", "Taxicab Distance", "RectilinearDistance. 
+        /// The sum of the absolute differences of the coordinates.
         /// </summary>
-        /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
-        /// <param name="nodes">The nodes associated with each point.</param>
-        /// <param name="distanceMetric">The nodes associated with each point.</param>
-        public static KDTree<TDimension, TDimension, TNode> Create<TDimension, TNode>(IList<IReadOnlyList<TDimension>> points,
-            IList<TNode> nodes, DistanceMetrics distanceMetric)
+        ManhattanDistance,
+        /// <summary>
+        /// AKA "L2 Distance", "Straightline Distance Squared"
+        /// This is the sum of the squared differences of the coordinates.
+        /// It does NOT take the square root (in order to be faster).
+        /// But if you do, then you get the straight-line distance between two points in Euclidean space.
+        /// </summary>
+        EuclideanDistance,
+        /// <summary>
+        /// Chebyshev Distance, also known as "L∞ Distance" or "Maximum Metric". This is the maximum 
+        /// absolute difference between the coordinates.
+        ChebyshevDistance,
+        /// <summary>
+        /// Cosine Distance is 1 - S_c where S_c is the cosine similarity
+        /// see: https://en.wikipedia.org/wiki/Cosine_similarity
+        CosineDistance
+    }
+    public static class CommonDistanceMetrics
+    {
+        public static Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TDimension> GetDistanceMetric<TDimension>(DistanceMetrics metric)
             where TDimension : INumber<TDimension>, IMinMaxValue<TDimension>
         {
-            Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TDimension> metric;
-            if (distanceMetric == DistanceMetrics.ManhattanDistance)
-                metric = (x, y) => ManhattanDistance(x, y);
-            else if (distanceMetric == DistanceMetrics.EuclideanDistance)
-                metric = (x, y) => EuclideanDistance(x, y);
-            else if (distanceMetric == DistanceMetrics.ChebyshevDistance)
-                metric = (x, y) => ChebyshevDistance(x, y);
-            else //if (distanceMetric == DistanceMetrics.CosineDistance)
-                metric = (x, y) => CosineDistance(x, y);
-
-            return new KDTree<TDimension, TDimension, TNode>(points[0].Count, points, nodes, metric, default, default);
+            return metric switch
+            {
+                DistanceMetrics.EuclideanDistance => EuclideanDistance,
+                DistanceMetrics.ManhattanDistance => ManhattanDistance,
+                DistanceMetrics.ChebyshevDistance => ChebyshevDistance,
+                DistanceMetrics.CosineDistance => CosineDistance,
+                _ => throw new System.ArgumentOutOfRangeException(nameof(metric), metric, null),
+            };
         }
-
         /// <summary>
         /// Calculates the squared Euclidean (L2 norm) distance between two points represented as TDimension arrays.
         /// </summary>
@@ -136,7 +143,5 @@ namespace SuperClusterKDTree
                 return -x;
             return x;
         }
-        #endregion
     }
-
 }

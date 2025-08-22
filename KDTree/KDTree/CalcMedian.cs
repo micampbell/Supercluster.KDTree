@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace SuperClusterKDTree.Utilities
+namespace NearestNeighborSearch
 {
     internal static class CalcMedian
     {

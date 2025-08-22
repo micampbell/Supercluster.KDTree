@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -14,9 +14,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.2"/>
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\KDTree\KDTree.csproj" />
+    <ProjectReference Include="..\KDTree\NearestNeighborSearch.csproj" />
   </ItemGroup>
 </Project>

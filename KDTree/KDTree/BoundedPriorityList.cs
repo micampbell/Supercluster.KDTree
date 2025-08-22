@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace SuperClusterKDTree.Utilities
+namespace NearestNeighborSearchKDTree
 {
     /// <summary>
     /// A list of limited length that remains sorted by <typeparamref name="TPriority"/>.
@@ -32,22 +32,22 @@ namespace SuperClusterKDTree.Utilities
         /// <summary>
         /// Gets the element with the largest priority.
         /// </summary>
-        internal TElement MaxElement => this.elementList[this.elementList.Count - 1];
+        internal TElement MaxElement => elementList[elementList.Count - 1];
 
         /// <summary>
         /// Gets the largest priority.
         /// </summary>
-        internal TPriority MaxPriority => this.priorityList[this.priorityList.Count - 1];
+        internal TPriority MaxPriority => priorityList[priorityList.Count - 1];
 
         /// <summary>
         /// Gets the element with the lowest priority.
         /// </summary>
-        internal TElement MinElement => this.elementList[0];
+        internal TElement MinElement => elementList[0];
 
         /// <summary>
         /// Gets the smallest priority.
         /// </summary>
-        internal TPriority MinPriority => this.priorityList[0];
+        internal TPriority MinPriority => priorityList[0];
 
         /// <summary>
         /// Gets the maximum allows capacity for the <see cref="BoundedPriorityList{TElement,TPriority}"/>
@@ -57,19 +57,19 @@ namespace SuperClusterKDTree.Utilities
         /// <summary>
         /// Returns true if the list is at maximum capacity.
         /// </summary>
-        internal bool IsFull => this.Count == this.Capacity;
+        internal bool IsFull => Count == Capacity;
 
         /// <summary>
         /// Returns the count of items currently in the list.
         /// </summary>
-        internal int Count => this.priorityList.Count;
+        internal int Count => priorityList.Count;
 
         /// <summary>
         /// Indexer for the internal element array.
         /// </summary>
         /// <param name="index">The index in the array.</param>
         /// <returns>The element at the specified index.</returns>
-        internal TElement this[int index] => this.elementList[index];
+        internal TElement this[int index] => elementList[index];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BoundedPriorityList{TElement, TPriority}"/> class.
@@ -82,16 +82,16 @@ namespace SuperClusterKDTree.Utilities
         /// <param name="allocate">If true, initializes the internal lists for the <see cref="BoundedPriorityList{TElement,TPriority}"/> with an initial capacity of <paramref name="capacity"/>.</param>
         internal BoundedPriorityList(int capacity, bool allocate = false)
         {
-            this.Capacity = capacity;
+            Capacity = capacity;
             if (allocate)
             {
-                this.priorityList = new List<TPriority>(capacity);
-                this.elementList = new List<TElement>(capacity);
+                priorityList = new List<TPriority>(capacity);
+                elementList = new List<TElement>(capacity);
             }
             else
             {
-                this.priorityList = new List<TPriority>();
-                this.elementList = new List<TElement>();
+                priorityList = new List<TPriority>();
+                elementList = new List<TElement>();
             }
         }
 
@@ -108,29 +108,29 @@ namespace SuperClusterKDTree.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Add(TElement item, TPriority priority)
         {
-            if (this.Count >= this.Capacity)
+            if (Count >= Capacity)
             {
-                if (this.priorityList[this.priorityList.Count - 1].CompareTo(priority) < 0)
+                if (priorityList[priorityList.Count - 1].CompareTo(priority) < 0)
                 {
                     return;
                 }
 
-                var index = this.priorityList.BinarySearch(priority);
+                var index = priorityList.BinarySearch(priority);
                 index = index >= 0 ? index : ~index;
 
-                this.priorityList.Insert(index, priority);
-                this.elementList.Insert(index, item);
+                priorityList.Insert(index, priority);
+                elementList.Insert(index, item);
 
-                this.priorityList.RemoveAt(this.priorityList.Count - 1);
-                this.elementList.RemoveAt(this.elementList.Count - 1);
+                priorityList.RemoveAt(priorityList.Count - 1);
+                elementList.RemoveAt(elementList.Count - 1);
             }
             else
             {
-                var index = this.priorityList.BinarySearch(priority);
+                var index = priorityList.BinarySearch(priority);
                 index = index >= 0 ? index : ~index;
 
-                this.priorityList.Insert(index, priority);
-                this.elementList.Insert(index, item);
+                priorityList.Insert(index, priority);
+                elementList.Insert(index, item);
             }
         }
 
@@ -140,7 +140,7 @@ namespace SuperClusterKDTree.Utilities
         /// <returns>An enumerator.</returns>
         public IEnumerator<TElement> GetEnumerator()
         {
-            return this.elementList.GetEnumerator();
+            return elementList.GetEnumerator();
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace SuperClusterKDTree.Utilities
         /// <returns>An enumerator.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return GetEnumerator();
         }
     }
 }
