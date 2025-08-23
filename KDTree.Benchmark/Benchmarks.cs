@@ -16,7 +16,7 @@ namespace NearestNeighborSearch.Benchmark
         public int Dimensions { get; set; }
 
         // Data sizes for different scenarios
-        [Params(8000, 100000, 1000000)]
+        [Params(8000, 100000)] //, 1000000)]
         public int DataSize { get; set; }
 
         // Number of neighbors to search for

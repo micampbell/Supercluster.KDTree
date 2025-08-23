@@ -10,7 +10,7 @@ namespace NearestNeighborSearchTests
         static void Main(string[] args)
         {
             var test = new AccuracyTest();
-            test.LimitedRadialSearchTest(typeof(LinearSearch));
+            test.FindNearestNeighborTest_Voxel();
         }
     }
 }

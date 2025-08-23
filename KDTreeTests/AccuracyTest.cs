@@ -16,6 +16,12 @@ namespace NearestNeighborSearchTests
         => FindNearestNeighborTest(typeof(KDTree));
 
 
+
+        [Test]
+        public void FindNearestNeighborTest_Voxel()
+        => FindNearestNeighborTest(typeof(VoxelSearch));
+
+
         [Test]
         public void FindNearestNeighborTest_Linear()
         => FindNearestNeighborTest(typeof(LinearSearch));
