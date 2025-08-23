@@ -33,7 +33,7 @@ namespace NearestNeighborSearchTests
             var testDataSizeConst = 100;
             for (int i = 0; i < 4; i++)
             {
-                if (searchType is VoxelSearch && i > 2)
+                if (searchType == typeof(VoxelSearch) && i > 2)
                     continue; // VoxelSearch does not support high dimensions well.
                 var dim = 1 + (int)Math.Exp(i); // 2, 3, 8, 21
                 var dataSize = dataSizeConst / (i + 1);
@@ -97,10 +97,10 @@ namespace NearestNeighborSearchTests
             var testDataSizeConst = 100;
             for (int i = 0; i < 4; i++)
             {
-                if (searchType is VoxelSearch && i > 2)
+                if (searchType == typeof(VoxelSearch) && i > 2)
                     continue; // VoxelSearch does not support high dimensions well.
                 var dim = 1 + (int)Math.Exp(i); // 2, 3, 8, 21
-                var radius = 0.25*dim * range;
+                var radius = 0.125 * dim * range;
                 var dataSize = dataSizeConst / (i + 1);
                 var testDataSize = testDataSizeConst / (i + 1);
                 var treeData = Utilities.GenerateDoubles(dataSize, range, dim);
@@ -113,7 +113,7 @@ namespace NearestNeighborSearchTests
                     var testPoint = testData[j];
                     var nearest = searchMethod.GetNeighborsInRadius(testPoint, radius).OrderBy(g => Utilities.L2Norm_Squared_Double(g.Item1, testPoint)).ToArray();
                     var linearBaseline = Utilities.LinearRadialSearch(treeData, treeNodes, testPoint, Utilities.L2Norm_Squared_Double,
-                        radius*radius);
+                        radius * radius);
                     for (int k = 0; k < nearest.Length; k++)
                     {
                         Assert.That(nearest[k].Item1, Is.EqualTo(linearBaseline[k].Item1));
@@ -146,7 +146,7 @@ namespace NearestNeighborSearchTests
             var testDataSizeConst = 100;
             for (int i = 0; i < 4; i++)
             {
-                if (searchType is VoxelSearch && i > 2)
+                if (searchType == typeof(VoxelSearch) && i > 2)
                     continue; // VoxelSearch does not support high dimensions well.
                 var dim = 1 + (int)Math.Exp(i); // 2, 3, 8, 21
                 var radius = dim * range * range;
@@ -168,6 +168,50 @@ namespace NearestNeighborSearchTests
                         Assert.That(nearest[k].Item1, Is.EqualTo(linearBaseline[k].Item1));
                         Assert.That(nearest[k].Item2, Is.EqualTo(linearBaseline[k].Item2));
                     }
+
+                }
+            }
+        }
+
+        [Test]
+        public void SingleSearchTest_KDTree()
+        => SingleSearchTest(typeof(KDTree));
+
+
+        [Test]
+        public void SingleSearchTest_Voxel()
+        => SingleSearchTest(typeof(VoxelSearch));
+
+
+        [Test]
+        public void SingleSearchTest_Linear()
+        => SingleSearchTest(typeof(LinearSearch));
+
+        public void SingleSearchTest(Type searchType)
+        {
+            var range = 1000;
+            var dataSizeConst = 10000;
+            var testDataSizeConst = 100;
+            for (int i = 0; i < 4; i++)
+            {
+                if (searchType == typeof(VoxelSearch) && i > 2)
+                    continue; // VoxelSearch does not support high dimensions well.
+                var dim = 1 + (int)Math.Exp(i); // 2, 3, 8, 21
+                var radius = dim * range * range;
+                var dataSize = dataSizeConst / (i + 1);
+                var testDataSize = testDataSizeConst / (i + 1);
+                var treeData = Utilities.GenerateDoubles(dataSize, range, dim);
+                var treeNodes = treeData.Select(d => d.GetHashCode().ToString()).ToArray();
+                var testData = Utilities.GenerateDoubles(testDataSize, range, dim);
+                var searchMethod = GetSearchMethod(searchType, treeData, treeNodes);
+
+                for (int j = 0; j < testDataSize; j++)
+                {
+                    var testPoint = testData[j];
+                    var nearest = searchMethod.GetNearestNeighbor(testPoint);
+                    var linearBaseline = Utilities.LinearSearch(treeData, treeNodes, testPoint, Utilities.L2Norm_Squared_Double, 2);
+                    Assert.That(nearest.Item1, Is.EqualTo(linearBaseline[0].Item1));
+                    Assert.That(nearest.Item2, Is.EqualTo(linearBaseline[0].Item2));
 
                 }
             }

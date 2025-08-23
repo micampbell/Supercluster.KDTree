@@ -12,7 +12,7 @@ namespace NearestNeighborSearch.Benchmark
     public class Benchmarks
     {
         // Test parameters - varying dimensions from 2D to 12D
-        [Params(2, 3,  9, 12, 15)]
+        [Params(2, 3,4)]//  9, 12, 15)]
         public int Dimensions { get; set; }
 
         // Data sizes for different scenarios
@@ -20,7 +20,7 @@ namespace NearestNeighborSearch.Benchmark
         public int DataSize { get; set; }
 
         // Number of neighbors to search for
-        [Params(10,100, 300)] 
+        [Params(10,100)] //, 300)] 
         public int NeighborCount { get; set; }
 
         // Test data
@@ -29,6 +29,7 @@ namespace NearestNeighborSearch.Benchmark
         private IReadOnlyList<double>[] _queryPoints;
         private KDTree<double, double, string> _kdTree;
         private LinearSearch<double, double, string> _linear;
+        private VoxelSearch<double, string> _voxel;
 
         // Metrics
         private static readonly Func<IReadOnlyList<double>, IReadOnlyList<double>, double> L2Metric = (x, y) =>
@@ -44,7 +45,7 @@ namespace NearestNeighborSearch.Benchmark
         [GlobalSetup]
         public void Setup()
         {
-            var random = new Random(1); // Fixed seed for reproducible results
+            var random = new Random(11); // Fixed seed for reproducible results
 
             // Generate test points
             _points = new double[DataSize][];
@@ -73,9 +74,9 @@ namespace NearestNeighborSearch.Benchmark
             }
 
             // Pre-build trees for search benchmarks
-            _kdTree = KDTree.Create(_points, _nodes, L2Metric);
-
-            _linear = LinearSearch.Create(_points, _nodes, L2Metric);
+            _kdTree = KDTree.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
+            _voxel = VoxelSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
+            _linear = LinearSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
         }
 
         #region Nearest Neighbor Search Benchmarks
@@ -92,14 +93,26 @@ namespace NearestNeighborSearch.Benchmark
             return results;
         }
 
+        //[Benchmark]
+        //[BenchmarkCategory("GetNearestNeighbors")]
+        //public (IReadOnlyList<double>, string)[][] Linear_NearestNeighbors()
+        //{
+        //    var results = new (IReadOnlyList<double>, string)[_queryPoints.Length][];
+        //    for (int i = 0; i < _queryPoints.Length; i++)
+        //    {
+        //        results[i] = _linear.GetNearestNeighbors(_queryPoints[i], NeighborCount).ToArray();
+        //    }
+        //    return results;
+        //}
+
         [Benchmark]
         [BenchmarkCategory("GetNearestNeighbors")]
-        public (IReadOnlyList<double>, string)[][] Linear_NearestNeighbors()
+        public (IReadOnlyList<double>, string)[][] Voxel_NearestNeighbors()
         {
             var results = new (IReadOnlyList<double>, string)[_queryPoints.Length][];
             for (int i = 0; i < _queryPoints.Length; i++)
             {
-                results[i] = _linear.GetNearestNeighbors(_queryPoints[i], NeighborCount).ToArray();
+                results[i] = _voxel.GetNearestNeighbors(_queryPoints[i], NeighborCount).ToArray();
             }
             return results;
         }
@@ -122,16 +135,30 @@ namespace NearestNeighborSearch.Benchmark
             return results;
         }
 
+        //[Benchmark]
+        //[BenchmarkCategory("RadialSearch")]
+        //public (IReadOnlyList<double>, string)[][] Linear_RadialSearch()
+        //{
+        //    double radius = 150.0; // Fixed radius for comparison
+        //    var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
+
+        //    for (int i = 0; i < results.Length; i++)
+        //    {
+        //        results[i] = _linear.GetNeighborsInRadius(_queryPoints[i], radius).ToArray();
+        //    }
+        //    return results;
+        //}
+
         [Benchmark]
         [BenchmarkCategory("RadialSearch")]
-        public (IReadOnlyList<double>, string)[][] Linear_RadialSearch()
+        public (IReadOnlyList<double>, string)[][] Voxel_RadialSearch()
         {
             double radius = 150.0; // Fixed radius for comparison
             var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
 
             for (int i = 0; i < results.Length; i++)
             {
-                results[i] = _linear.GetNeighborsInRadius(_queryPoints[i], radius).ToArray();
+                results[i] = _voxel.GetNeighborsInRadius(_queryPoints[i], radius).ToArray();
             }
             return results;
         }
@@ -139,33 +166,46 @@ namespace NearestNeighborSearch.Benchmark
         #endregion
         #region Both Radial and Number Search Benchmarks
 
-        [Benchmark]
-        [BenchmarkCategory("BothLimitsSearch")]
-        public (IReadOnlyList<double>, string)[][] KDTree_BothSearch()
-        {
-            double radius = 150.0; // Fixed radius for comparison
-            var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
+        //[Benchmark]
+        //[BenchmarkCategory("BothLimitsSearch")]
+        //public (IReadOnlyList<double>, string)[][] KDTree_BothSearch()
+        //{
+        //    double radius = 150.0; // Fixed radius for comparison
+        //    var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
 
-            for (int i = 0; i < results.Length; i++)
-            {
-                results[i] = _kdTree.GetNeighborsInRadius(_queryPoints[i], radius, NeighborCount).ToArray();
-            }
-            return results;
-        }
+        //    for (int i = 0; i < results.Length; i++)
+        //    {
+        //        results[i] = _kdTree.GetNeighborsInRadius(_queryPoints[i], radius, NeighborCount).ToArray();
+        //    }
+        //    return results;
+        //}
 
-        [Benchmark]
-        [BenchmarkCategory("BothLimitsSearch")]
-        public (IReadOnlyList<double>, string)[][] Linear_BothSearch()
-        {
-            double radius = 150.0; // Fixed radius for comparison
-            var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
+        //[Benchmark]
+        //[BenchmarkCategory("BothLimitsSearch")]
+        //public (IReadOnlyList<double>, string)[][] Linear_BothSearch()
+        //{
+        //    double radius = 150.0; // Fixed radius for comparison
+        //    var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
 
-            for (int i = 0; i < results.Length; i++)
-            {
-                results[i] = _linear.GetNeighborsInRadius(_queryPoints[i], radius, NeighborCount).ToArray();
-            }
-            return results;
-        }
+        //    for (int i = 0; i < results.Length; i++)
+        //    {
+        //        results[i] = _linear.GetNeighborsInRadius(_queryPoints[i], radius, NeighborCount).ToArray();
+        //    }
+        //    return results;
+        //}
+        //[Benchmark]
+        //[BenchmarkCategory("BothLimitsSearch")]
+        //public (IReadOnlyList<double>, string)[][] Voxel_BothSearch()
+        //{
+        //    double radius = 150.0; // Fixed radius for comparison
+        //    var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
+
+        //    for (int i = 0; i < results.Length; i++)
+        //    {
+        //        results[i] = _voxel.GetNeighborsInRadius(_queryPoints[i], radius, NeighborCount).ToArray();
+        //    }
+        //    return results;
+        //}
 
         #endregion
         #region Single Search Benchmarks
@@ -183,15 +223,28 @@ namespace NearestNeighborSearch.Benchmark
             return results;
         }
 
+        //[Benchmark]
+        //[BenchmarkCategory("SingleBestSearch")]
+        //public (IReadOnlyList<double>, string)[] Linear_SingleSearch()
+        //{
+        //    var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)];
+
+        //    for (int i = 0; i < results.Length; i++)
+        //    {
+        //        results[i] = _linear.GetNearestNeighbor(_queryPoints[i]);
+        //    }
+        //    return results;
+        //}
+
         [Benchmark]
         [BenchmarkCategory("SingleBestSearch")]
-        public (IReadOnlyList<double>, string)[] Linear_SingleSearch()
+        public (IReadOnlyList<double>, string)[] Voxel_SingleSearch()
         {
             var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)];
 
             for (int i = 0; i < results.Length; i++)
             {
-                results[i] = _linear.GetNearestNeighbor(_queryPoints[i]);
+                results[i] = _voxel.GetNearestNeighbor(_queryPoints[i]);
             }
             return results;
         }

@@ -139,14 +139,16 @@ namespace NearestNeighborSearch
 
             var targetLocation = GetIndices(target);
             var layer = 0;
+            var maxSet = false;
             var maxLayer = NumVoxelsInDim.Max();
             while (layer <= maxLayer)
             {
-                if (closestDistance < TDimension.MaxValue)
+                if (!maxSet && closestDistance < TDimension.MaxValue)
                 {
                     maxLayer = MetricType == DistanceMetrics.ManhattanDistance || MetricType == DistanceMetrics.ChebyshevDistance
                         ? layer + 1
-                        : ((int)Math.Pow(((int)Math.Sqrt(layer)) + 2, 2))-1;
+                        : ((int)Math.Pow(((int)Math.Sqrt(layer - 1)) + 2, 2)); // - 1;
+                    maxSet = true;
                 }
                 foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer, combiner))
                 {
@@ -156,12 +158,11 @@ namespace NearestNeighborSearch
                         {
                             var p = Points[pointIndex];
                             var currentDist = Metric(p, target);
-                            if (currentDist.CompareTo(closestDistance) < 0)
+                            if (currentDist < closestDistance)
                             {
                                 closestDistance = currentDist;
                                 closestPoint = (p, Nodes[pointIndex]);
                             }
-
                         }
                     }
                 }
@@ -384,7 +385,7 @@ namespace NearestNeighborSearch
                 {
                     maxLayer = MetricType == DistanceMetrics.ManhattanDistance || MetricType == DistanceMetrics.ChebyshevDistance
                         ? layer + 1
-                        : ((int)Math.Pow(((int)Math.Sqrt(layer)) + 2, 2))-1;
+                        : ((int)Math.Pow(((int)Math.Sqrt(layer - 1)) + 2, 2)) - 1;
                     maxSet = true;
                 }
                 foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer, combiner))
@@ -435,10 +436,11 @@ namespace NearestNeighborSearch
         public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNeighborsInRadius(IReadOnlyList<TDimension> target, TDimension radius,
             int numNeighbors = -1)
         {
+            var maxLayer = 1 + (int)Math.Ceiling(double.CreateChecked(radius * inversePixelSideLength));
+            maxLayer *= maxLayer; // radius squared
+            maxLayer -= 1;
             if (Metric.GetMethodInfo().Name == nameof(CommonDistanceMetrics.EuclideanDistance))
                 radius *= radius; // we are using squared Euclidean distance, so square the radius.
-            var maxLayer = (int)Math.Ceiling(double.CreateChecked(radius * inversePixelSideLength));
-            maxLayer *= maxLayer; // radius squared
             if (numNeighbors <= 0) return UnlimitedRadialSearch(target, radius, maxLayer);
 
             var closestDistances = new TDimension[numNeighbors];
@@ -460,7 +462,7 @@ namespace NearestNeighborSearch
                 {
                     maxLayer = MetricType == DistanceMetrics.ManhattanDistance || MetricType == DistanceMetrics.ChebyshevDistance
                         ? layer + 1
-                        : (int)Math.Pow(Math.Sqrt(layer) + 1, 2);
+                        : ((int)Math.Pow(((int)Math.Sqrt(layer - 1)) + 2, 2)) - 1;
                     maxSet = true;
                 }
                 foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer, combiner))
@@ -519,12 +521,6 @@ namespace NearestNeighborSearch
             var targetLocation = GetIndices(target);
             for (var layer = 0; layer <= maxLayer; layer++)
             {
-                // if (closestDistance < TDimension.MaxValue)
-                //{
-                //    maxLayer = MetricType == DistanceMetrics.ManhattanDistance || MetricType == DistanceMetrics.ChebyshevDistance
-                //        ? layer + 1
-                //        : (int)Math.Pow(Math.Sqrt(layer) + 1, 2);
-                //}
                 foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer, combiner))
                 {
                     if (Indices[voxelIndex] != null)
@@ -533,7 +529,7 @@ namespace NearestNeighborSearch
                         {
                             var p = Points[pointIndex];
                             var currentDist = Metric(p, target);
-                            if (currentDist.CompareTo(radius) <= 0)
+                            if (currentDist <= radius)
                                 yield return (p, Nodes[pointIndex]);
                         }
                     }
