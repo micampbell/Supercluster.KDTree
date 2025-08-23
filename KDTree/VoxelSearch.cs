@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace NearestNeighborSearch
@@ -17,7 +18,7 @@ namespace NearestNeighborSearch
 
     }
 
-    public class VoxelSearch<TDimension,  TNode> : SearchMethod<TDimension, TDimension, TNode>
+    public class VoxelSearch<TDimension, TNode> : SearchMethod<TDimension, TDimension, TNode>
         where TDimension : IComparable<TDimension>, IMinMaxValue<TDimension>, INumber<TDimension>
     {
         const int MaxNumberOfVoxels = 1000000;
@@ -54,7 +55,7 @@ namespace NearestNeighborSearch
         /// <param name="searchWindowMinValue">The minimum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MinValue". All numeric structs have this field.</param>
         /// <param name="searchWindowMaxValue">The maximum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MaxValue". All numeric structs have this field.</param>
         internal VoxelSearch(ICollection<IReadOnlyList<TDimension>> points, IEnumerable<TNode> nodes, DistanceMetrics metricType,
-            TDimension searchWindowMinValue = default, TDimension searchWindowMaxValue = default) 
+            TDimension searchWindowMinValue = default, TDimension searchWindowMaxValue = default)
             : base(points, CommonDistanceMetrics.GetDistanceMetric<TDimension>(metricType), searchWindowMinValue, searchWindowMaxValue)
         {
             this.Points = new IReadOnlyList<TDimension>[Count];
@@ -128,38 +129,50 @@ namespace NearestNeighborSearch
         /// <inheritdoc/>
         public override (IReadOnlyList<TDimension>, TNode) GetNearestNeighbor(IReadOnlyList<TDimension> target)
         {
+            var closestDistance = TDimension.MaxValue;
+            (IReadOnlyList<TDimension>, TNode) closestPoint = default;
+            var cutOffDist = TDimension.MaxValue;
+            Func<int, IEnumerable<int[]>> combiner = MetricType == DistanceMetrics.ManhattanDistance
+                ? GetAllCombinationsTotalingN
+                : MetricType == DistanceMetrics.EuclideanDistance ? GetAllCombinationsTotalingNSquared
+                : GetAllCombinationsTotalingNMax;
+
             var targetLocation = GetIndices(target);
             var layer = 0;
-            while (true)
+            var maxLayer = NumVoxelsInDim.Max();
+            while (layer <= maxLayer)
             {
-                foreach (var index in GetIndicesAtLayer(targetLocation, layer))
+                if (closestDistance < TDimension.MaxValue)
                 {
-                    if (Indices[index] != null)
+                    maxLayer = MetricType == DistanceMetrics.ManhattanDistance || MetricType == DistanceMetrics.ChebyshevDistance
+                        ? layer + 1
+                        : ((int)Math.Pow(((int)Math.Sqrt(layer)) + 2, 2))-1;
+                }
+                foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer, combiner))
+                {
+                    if (Indices[voxelIndex] != null)
                     {
-                        var bestPoint = Points[Indices[index][0]];
-                        var bestNode = Nodes[Indices[index][0]];
-                        var bestDist = Metric(bestPoint, target);
-                        for (int i = 1; i < Indices[index].Length; i++)
+                        foreach (var pointIndex in Indices[voxelIndex])
                         {
-                            var currentPoint = Points[Indices[index][i]];
-                            var currentDist = Metric(currentPoint, target);
-                            if (currentDist.CompareTo(bestDist) < 0)
+                            var p = Points[pointIndex];
+                            var currentDist = Metric(p, target);
+                            if (currentDist.CompareTo(closestDistance) < 0)
                             {
-                                bestDist = currentDist;
-                                bestPoint = currentPoint;
-                                bestNode = Nodes[Indices[index][i]];
+                                closestDistance = currentDist;
+                                closestPoint = (p, Nodes[pointIndex]);
                             }
+
                         }
-                        return (bestPoint, bestNode);
                     }
                 }
                 layer++; // expand search outward one layer
             }
+            return closestPoint;
         }
 
-        private IEnumerable<int> GetIndicesAtLayer(int[] targetLocation, int layer)
+        private IEnumerable<int> GetIndicesAtLayer(int[] targetLocation, int layer, Func<int, IEnumerable<int[]>> combiner)
         {
-            foreach (var delta in GetAllCombinationsTotalingN(layer))
+            foreach (var delta in combiner(layer))
             {
                 var location = (int[])targetLocation.Clone();
                 var valid = true;
@@ -175,6 +188,125 @@ namespace NearestNeighborSearch
                 if (valid)
                     yield return GetIndex(location);
             }
+        }
+
+        private IEnumerable<int[]> GetAllCombinationsTotalingNSquared(int layer)
+        {
+            // Return all integer vectors v (length = Dimensions) such that Sum(v[i]^2) == layer (L2 shell)
+            if (layer == 0)
+            {
+                yield return new int[Dimensions];
+                yield break;
+            }
+
+            var values = new int[Dimensions];
+
+            IEnumerable<int[]> Recurse(int dim, int remainingSquared)
+            {
+                if (dim == Dimensions - 1)
+                {
+                    // Last dimension must satisfy remainingSquared = values[dim]^2
+                    var root = (int)Math.Sqrt(remainingSquared);
+                    if (root * root == remainingSquared)
+                    {
+                        values[dim] = root;
+                        foreach (var v in EmitWithSigns())
+                            yield return v;
+                    }
+                    yield break;
+                }
+
+                // For current dimension choose a non-negative value whose square <= remainingSquared
+                int maxVal = (int)Math.Sqrt(remainingSquared);
+                for (int a = 0; a <= maxVal; a++)
+                {
+                    values[dim] = a;
+                    foreach (var v in Recurse(dim + 1, remainingSquared - a * a))
+                        yield return v;
+                }
+            }
+
+            IEnumerable<int[]> EmitWithSigns()
+            {
+                // Determine indices with non-zero values
+                var nonZero = new List<int>(Dimensions);
+                for (int i = 0; i < Dimensions; i++)
+                    if (values[i] != 0) nonZero.Add(i);
+                int nz = nonZero.Count;
+                int totalMasks = 1 << nz;
+                for (int mask = 0; mask < totalMasks; mask++)
+                {
+                    var vec = new int[Dimensions];
+                    for (int i = 0; i < Dimensions; i++) vec[i] = values[i];
+                    for (int bit = 0; bit < nz; bit++)
+                        if ((mask & (1 << bit)) != 0)
+                            vec[nonZero[bit]] = -vec[nonZero[bit]];
+                    yield return vec;
+                }
+            }
+
+            foreach (var v in Recurse(0, layer))
+                yield return v;
+        }
+
+
+        private IEnumerable<int[]> GetAllCombinationsTotalingNMax(int layer)
+        {
+            // Return all integer vectors v (length = Dimensions) such that Max(abs(v[i])) == layer (L-inf shell)
+            if (layer == 0)
+            {
+                yield return new int[Dimensions];
+                yield break;
+            }
+
+            var values = new int[Dimensions];
+
+            IEnumerable<int[]> Recurse(int dim, int remainingSquared)
+            {
+                if (dim == Dimensions - 1)
+                {
+                    // Last dimension must satisfy remainingSquared = values[dim]^2
+                    var root = (int)Math.Sqrt(remainingSquared);
+                    if (root * root == remainingSquared)
+                    {
+                        values[dim] = root;
+                        foreach (var v in EmitWithSigns())
+                            yield return v;
+                    }
+                    yield break;
+                }
+
+                // For current dimension choose a non-negative value whose square <= remainingSquared
+                int maxVal = (int)Math.Sqrt(remainingSquared);
+                for (int a = 0; a <= maxVal; a++)
+                {
+                    values[dim] = a;
+                    foreach (var v in Recurse(dim + 1, remainingSquared - a * a))
+                        yield return v;
+                }
+            }
+
+            IEnumerable<int[]> EmitWithSigns()
+            {
+                // Determine indices with non-zero values
+                var nonZero = new List<int>(Dimensions);
+                for (int i = 0; i < Dimensions; i++)
+                    if (values[i] != 0) nonZero.Add(i);
+                int nz = nonZero.Count;
+                int totalMasks = 1 << nz;
+                for (int mask = 0; mask < totalMasks; mask++)
+                {
+                    var vec = new int[Dimensions];
+                    for (int i = 0; i < Dimensions; i++) vec[i] = values[i];
+                    for (int bit = 0; bit < nz; bit++)
+                        if ((mask & (1 << bit)) != 0)
+                            vec[nonZero[bit]] = -vec[nonZero[bit]];
+                    yield return vec;
+                }
+            }
+
+            foreach (var v in Recurse(0, layer))
+                yield return v;
         }
 
         private IEnumerable<int[]> GetAllCombinationsTotalingN(int n)
@@ -237,14 +369,25 @@ namespace NearestNeighborSearch
             var cutOffDist = TDimension.MaxValue;
             var locationOfMax = -1;
             var pointsSaved = 0;
+            Func<int, IEnumerable<int[]>> combiner = MetricType == DistanceMetrics.ManhattanDistance
+                ? GetAllCombinationsTotalingN
+                : MetricType == DistanceMetrics.EuclideanDistance ? GetAllCombinationsTotalingNSquared
+                : GetAllCombinationsTotalingNMax;
 
             var targetLocation = GetIndices(target);
             var layer = 0;
-            var keepExpanding = true;
-            while (keepExpanding)
+            var maxSet = false;
+            var maxLayer = NumVoxelsInDim.Max();
+            while (!maxSet || layer <= maxLayer)
             {
-                keepExpanding = pointsSaved != numNeighbors;
-                foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer))
+                if (!maxSet && pointsSaved == numNeighbors)
+                {
+                    maxLayer = MetricType == DistanceMetrics.ManhattanDistance || MetricType == DistanceMetrics.ChebyshevDistance
+                        ? layer + 1
+                        : ((int)Math.Pow(((int)Math.Sqrt(layer)) + 2, 2))-1;
+                    maxSet = true;
+                }
+                foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer, combiner))
                 {
                     if (Indices[voxelIndex] != null)
                     {
@@ -280,7 +423,7 @@ namespace NearestNeighborSearch
                         }
                     }
                 }
-                    layer++; // expand search outward one layer
+                layer++; // expand search outward one layer
             }
             if (pointsSaved < numNeighbors)
                 Array.Resize(ref closestPoints, pointsSaved);
@@ -289,57 +432,112 @@ namespace NearestNeighborSearch
 
 
         /// <inheritdoc/>
-        public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNeighborsInRadius(IReadOnlyList<TDimension> target, TDimension radius, int numNeighbors = -1)
+        public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNeighborsInRadius(IReadOnlyList<TDimension> target, TDimension radius,
+            int numNeighbors = -1)
         {
-            if (numNeighbors <= 0) return UnlimitedRadialSearch(target, radius);
+            if (Metric.GetMethodInfo().Name == nameof(CommonDistanceMetrics.EuclideanDistance))
+                radius *= radius; // we are using squared Euclidean distance, so square the radius.
+            var maxLayer = (int)Math.Ceiling(double.CreateChecked(radius * inversePixelSideLength));
+            maxLayer *= maxLayer; // radius squared
+            if (numNeighbors <= 0) return UnlimitedRadialSearch(target, radius, maxLayer);
+
             var closestDistances = new TDimension[numNeighbors];
             var closestPoints = new (IReadOnlyList<TDimension>, TNode)[numNeighbors];
             var cutOffDist = TDimension.MaxValue;
             var locationOfMax = -1;
             var pointsSaved = 0;
+            Func<int, IEnumerable<int[]>> combiner = MetricType == DistanceMetrics.ManhattanDistance
+                ? GetAllCombinationsTotalingN
+                : MetricType == DistanceMetrics.EuclideanDistance ? GetAllCombinationsTotalingNSquared
+                : GetAllCombinationsTotalingNMax;
 
-            for (int i = 0; i < Points.Length; i++)
+            var targetLocation = GetIndices(target);
+            var layer = 0;
+            var maxSet = false;
+            while (!maxSet || layer <= maxLayer)
             {
-                var currentDist = Metric(Points[i], target);
-                if (currentDist.CompareTo(radius) > 0)
-                    continue;
-                if (pointsSaved < numNeighbors)
+                if (!maxSet && pointsSaved == numNeighbors)
                 {
-                    closestDistances[pointsSaved] = currentDist;
-                    closestPoints[pointsSaved] = (Points[i], Nodes[i]);
-                    pointsSaved++;
+                    maxLayer = MetricType == DistanceMetrics.ManhattanDistance || MetricType == DistanceMetrics.ChebyshevDistance
+                        ? layer + 1
+                        : (int)Math.Pow(Math.Sqrt(layer) + 1, 2);
+                    maxSet = true;
                 }
-                else if (currentDist.CompareTo(cutOffDist) < 0)
+                foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer, combiner))
                 {
-                    closestDistances[locationOfMax] = currentDist;
-                    closestPoints[locationOfMax] = (Points[i], Nodes[i]);
-                }
-                if (pointsSaved == numNeighbors)
-                {
-                    // recalc max
-                    cutOffDist = TDimension.MinValue;
-                    for (int j = 0; j < numNeighbors; j++)
+                    if (Indices[voxelIndex] != null)
                     {
-                        if (closestDistances[j].CompareTo(cutOffDist) > 0)
+                        foreach (var pointIndex in Indices[voxelIndex])
                         {
-                            cutOffDist = closestDistances[j];
-                            locationOfMax = j;
+                            var p = Points[pointIndex];
+                            var currentDist = Metric(p, target);
+                            if (currentDist > radius)
+                                continue;
+                            if (pointsSaved < numNeighbors)
+                            {
+                                closestDistances[pointsSaved] = currentDist;
+                                closestPoints[pointsSaved] = (p, Nodes[pointIndex]);
+                                pointsSaved++;
+                            }
+                            else if (currentDist.CompareTo(cutOffDist) < 0)
+                            {
+                                closestDistances[locationOfMax] = currentDist;
+                                closestPoints[locationOfMax] = (p, Nodes[pointIndex]);
+                            }
+                            if (pointsSaved == numNeighbors)
+                            {
+                                // recalc max
+                                cutOffDist = TDimension.MinValue;
+                                for (int j = 0; j < numNeighbors; j++)
+                                {
+                                    if (closestDistances[j].CompareTo(cutOffDist) > 0)
+                                    {
+                                        cutOffDist = closestDistances[j];
+                                        locationOfMax = j;
+                                    }
+                                }
+                            }
+
                         }
                     }
                 }
+                layer++; // expand search outward one layer
             }
             if (pointsSaved < numNeighbors)
                 Array.Resize(ref closestPoints, pointsSaved);
             return closestPoints;
         }
 
-        private IEnumerable<(IReadOnlyList<TDimension>, TNode)> UnlimitedRadialSearch(IReadOnlyList<TDimension> target, TDimension radius)
+        private IEnumerable<(IReadOnlyList<TDimension>, TNode)> UnlimitedRadialSearch(IReadOnlyList<TDimension> target,
+            TDimension radius, int maxLayer)
         {
-            for (int i = 0; i < Points.Length; i++)
+            Func<int, IEnumerable<int[]>> combiner = MetricType == DistanceMetrics.ManhattanDistance
+    ? GetAllCombinationsTotalingN
+    : MetricType == DistanceMetrics.EuclideanDistance ? GetAllCombinationsTotalingNSquared
+    : GetAllCombinationsTotalingNMax;
+
+            var targetLocation = GetIndices(target);
+            for (var layer = 0; layer <= maxLayer; layer++)
             {
-                var currentDist = Metric(target, Points[i]);
-                if (currentDist.CompareTo(radius) <= 0)
-                    yield return (Points[i], Nodes[i]);
+                // if (closestDistance < TDimension.MaxValue)
+                //{
+                //    maxLayer = MetricType == DistanceMetrics.ManhattanDistance || MetricType == DistanceMetrics.ChebyshevDistance
+                //        ? layer + 1
+                //        : (int)Math.Pow(Math.Sqrt(layer) + 1, 2);
+                //}
+                foreach (var voxelIndex in GetIndicesAtLayer(targetLocation, layer, combiner))
+                {
+                    if (Indices[voxelIndex] != null)
+                    {
+                        foreach (var pointIndex in Indices[voxelIndex])
+                        {
+                            var p = Points[pointIndex];
+                            var currentDist = Metric(p, target);
+                            if (currentDist.CompareTo(radius) <= 0)
+                                yield return (p, Nodes[pointIndex]);
+                        }
+                    }
+                }
             }
         }
 

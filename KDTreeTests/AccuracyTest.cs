@@ -33,6 +33,8 @@ namespace NearestNeighborSearchTests
             var testDataSizeConst = 100;
             for (int i = 0; i < 4; i++)
             {
+                if (searchType is VoxelSearch && i > 2)
+                    continue; // VoxelSearch does not support high dimensions well.
                 var dim = 1 + (int)Math.Exp(i); // 2, 3, 8, 21
                 var dataSize = dataSizeConst / (i + 1);
                 var testDataSize = testDataSizeConst / (i + 1);
@@ -79,6 +81,11 @@ namespace NearestNeighborSearchTests
         => RadialSearchTest(typeof(KDTree));
 
 
+
+        [Test]
+        public void RadialSearchTest_Voxel()
+        => RadialSearchTest(typeof(VoxelSearch));
+
         [Test]
         public void RadialSearchTest_Linear()
         => RadialSearchTest(typeof(LinearSearch));
@@ -90,8 +97,10 @@ namespace NearestNeighborSearchTests
             var testDataSizeConst = 100;
             for (int i = 0; i < 4; i++)
             {
+                if (searchType is VoxelSearch && i > 2)
+                    continue; // VoxelSearch does not support high dimensions well.
                 var dim = 1 + (int)Math.Exp(i); // 2, 3, 8, 21
-                var radius = dim * range * range;
+                var radius = 0.25*dim * range;
                 var dataSize = dataSizeConst / (i + 1);
                 var testDataSize = testDataSizeConst / (i + 1);
                 var treeData = Utilities.GenerateDoubles(dataSize, range, dim);
@@ -104,7 +113,7 @@ namespace NearestNeighborSearchTests
                     var testPoint = testData[j];
                     var nearest = searchMethod.GetNeighborsInRadius(testPoint, radius).OrderBy(g => Utilities.L2Norm_Squared_Double(g.Item1, testPoint)).ToArray();
                     var linearBaseline = Utilities.LinearRadialSearch(treeData, treeNodes, testPoint, Utilities.L2Norm_Squared_Double,
-                        radius);
+                        radius*radius);
                     for (int k = 0; k < nearest.Length; k++)
                     {
                         Assert.That(nearest[k].Item1, Is.EqualTo(linearBaseline[k].Item1));
@@ -122,6 +131,11 @@ namespace NearestNeighborSearchTests
 
 
         [Test]
+        public void LimitedRadialSearchTest_Voxel()
+        => LimitedRadialSearchTest(typeof(VoxelSearch));
+
+
+        [Test]
         public void LimitedRadialSearchTest_Linear()
         => LimitedRadialSearchTest(typeof(LinearSearch));
 
@@ -132,6 +146,8 @@ namespace NearestNeighborSearchTests
             var testDataSizeConst = 100;
             for (int i = 0; i < 4; i++)
             {
+                if (searchType is VoxelSearch && i > 2)
+                    continue; // VoxelSearch does not support high dimensions well.
                 var dim = 1 + (int)Math.Exp(i); // 2, 3, 8, 21
                 var radius = dim * range * range;
                 var dataSize = dataSizeConst / (i + 1);

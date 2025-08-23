@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 namespace NearestNeighborSearch
 {
@@ -136,6 +137,8 @@ namespace NearestNeighborSearch
         /// <inheritdoc/>
         public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNeighborsInRadius(IReadOnlyList<TDimension> target, TPriority radius, int numNeighbors = -1)
         {
+            if (Metric.GetMethodInfo().Name == nameof(CommonDistanceMetrics.EuclideanDistance))
+                radius *= radius; // we are using squared Euclidean distance, so square the radius.
             if (numNeighbors <= 0) return UnlimitedRadialSearch(target, radius);
             var closestDistances = new TPriority[numNeighbors];
             var closestPoints = new (IReadOnlyList<TDimension>, TNode)[numNeighbors];
@@ -146,7 +149,7 @@ namespace NearestNeighborSearch
             for (int i = 0; i < Points.Length; i++)
             {
                 var currentDist = Metric(Points[i], target);
-                if (currentDist.CompareTo(radius) > 0)
+                if (currentDist > radius)
                     continue;
                 if (pointsSaved < numNeighbors)
                 {

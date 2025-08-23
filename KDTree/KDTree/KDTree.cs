@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using static NearestNeighborSearchKDTree.BinaryTreeNavigation;
 
@@ -130,6 +131,8 @@ namespace NearestNeighborSearch
         /// <inheritdoc/>
         public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNeighborsInRadius(IReadOnlyList<TDimension> center, TPriority radius, int numNeighbors = -1)
         {
+            if (Metric.GetMethodInfo().Name == nameof(CommonDistanceMetrics.EuclideanDistance))
+                radius *= radius; // we are using squared Euclidean distance, so square the radius.
             var nearestNeighbors = numNeighbors == -1 ? new BoundedPriorityList<int, TPriority>(Count)
                                                         : new BoundedPriorityList<int, TPriority>(numNeighbors, true);
             SearchForNearestNeighbors(
