@@ -53,7 +53,7 @@ namespace NearestNeighborSearch
         /// <param name="metric">The metric function which implicitly defines the metric space in which the LinearSearch operates in. This should satisfy the triangle inequality.</param>
         /// <param name="searchWindowMinValue">The minimum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MinValue". All numeric structs have this field.</param>
         /// <param name="searchWindowMaxValue">The maximum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MaxValue". All numeric structs have this field.</param>
-        internal LinearSearch(
+        public LinearSearch(
             ICollection<IReadOnlyList<TDimension>> points,
             IEnumerable<TNode> nodes,
             Func<IReadOnlyList<TDimension>, IReadOnlyList<TDimension>, TPriority> metric,
