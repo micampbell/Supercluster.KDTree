@@ -94,6 +94,10 @@ namespace NearestNeighborSearch
         /// <inheritdoc/>
         public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNearestNeighbors(IReadOnlyList<TDimension> target, int numNeighbors)
         {
+            if (numNeighbors <= 0 || numNeighbors >= Count)
+                return GetAllData();
+            if (numNeighbors == 1)
+                return [GetNearestNeighbor(target)];
             var closestDistances = new TPriority[numNeighbors];
             var closestPoints = new (IReadOnlyList<TDimension>, TNode)[numNeighbors];
             var cutOffDist = TPriority.MaxValue;
@@ -139,7 +143,7 @@ namespace NearestNeighborSearch
         {
             if (Metric.GetMethodInfo().Name == nameof(CommonDistanceMetrics.EuclideanDistance))
                 radius *= radius; // we are using squared Euclidean distance, so square the radius.
-            if (numNeighbors <= 0) return UnlimitedRadialSearch(target, radius);
+            if (numNeighbors <= 0 || numNeighbors >= Count) return UnlimitedRadialSearch(target, radius);
             var closestDistances = new TPriority[numNeighbors];
             var closestPoints = new (IReadOnlyList<TDimension>, TNode)[numNeighbors];
             var cutOffDist = TPriority.MaxValue;

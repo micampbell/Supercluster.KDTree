@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KDTree\NearestNeighborSearch.csproj" />
+    <ProjectReference Include="..\NearestNeighbor\NearestNeighborSearch.csproj" />
   </ItemGroup>
 
 </Project>

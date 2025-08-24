@@ -76,7 +76,7 @@ namespace NearestNeighborSearch
         /// </summary>
         /// <param name="dimensions">The number of dimensions in the data set.</param>
         /// <param name="points">The points to be constructed into a <see cref="KDTree{TDimension,TNode}"/></param>
-        /// <param name="nodes">The nodes associated with each point.</param>
+        /// <param name="nodes">The nodes associated with each target.</param>
         /// <param name="metric">The metric function which implicitly defines the metric space in which the KDTree operates in. This should satisfy the triangle inequality.</param>
         /// <param name="searchWindowMinValue">The minimum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MinValue". All numeric structs have this field.</param>
         /// <param name="searchWindowMaxValue">The maximum value to be used in node searches. If null, we assume that <typeparamref name="TDimension"/> has a static field named "MaxValue". All numeric structs have this field.</param>
@@ -118,11 +118,15 @@ namespace NearestNeighborSearch
             return new(InternalPointArray[indexOfNearest], InternalNodeArray[indexOfNearest]);
         }
         /// <inheritdoc/>
-        public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNearestNeighbors(IReadOnlyList<TDimension> point, int numNeighbors)
+        public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNearestNeighbors(IReadOnlyList<TDimension> target, int numNeighbors)
         {
+            if (numNeighbors <= 0 || numNeighbors >= Count)
+                return GetAllData();
+            if (numNeighbors == 1)
+                return [GetNearestNeighbor(target)];
             var nearestNeighborList = new BoundedPriorityList<int, TPriority>(numNeighbors, true);
             var rect = HyperRect<TDimension>.Infinite(Dimensions, MaxValue, MinValue);
-            SearchForNearestNeighbors(0, point, rect, 0, nearestNeighborList, TPriority.MaxValue);
+            SearchForNearestNeighbors(0, target, rect, 0, nearestNeighborList, TPriority.MaxValue);
 
             return ToResultSet(nearestNeighborList);
         }
@@ -133,8 +137,8 @@ namespace NearestNeighborSearch
         {
             if (Metric.GetMethodInfo().Name == nameof(CommonDistanceMetrics.EuclideanDistance))
                 radius *= radius; // we are using squared Euclidean distance, so square the radius.
-            var nearestNeighbors = numNeighbors == -1 ? new BoundedPriorityList<int, TPriority>(Count)
-                                                        : new BoundedPriorityList<int, TPriority>(numNeighbors, true);
+            var nearestNeighbors = numNeighbors > 0 ? new BoundedPriorityList<int, TPriority>(Math.Min(numNeighbors, Count), true) :
+                new BoundedPriorityList<int, TPriority>(Count);
             SearchForNearestNeighbors(
                 0,
                 center,
@@ -194,7 +198,7 @@ namespace NearestNeighborSearch
                 }
                 else if (!leftSideFilled && compare <= 0)
                 {
-                    // point is on the left side of the median
+                    // target is on the left side of the median
                     leftPoints[leftIndex] = point;
                     leftNodes[leftIndex] = node;
                     leftIndex++;
@@ -202,7 +206,7 @@ namespace NearestNeighborSearch
                 }
                 else //if (compare > 0 || (!rightSideFilled && compare == 0))
                 {
-                    // point is on the right side of the median
+                    // target is on the right side of the median
                     rightPoints[rightIndex] = point;
                     rightNodes[rightIndex] = node;
                     rightIndex++;
@@ -214,7 +218,7 @@ namespace NearestNeighborSearch
             // each recursion call. We also forward cycle to the next dimension.
             var nextDim = (dim + 1) % Dimensions; // select next dimension
 
-            // We only need to recurse if the point array contains more than one point
+            // We only need to recurse if the target array contains more than one target
             // If the array has no points then the node stay a null value
             if (leftPoints.Length <= 1)
             {
@@ -245,10 +249,10 @@ namespace NearestNeighborSearch
         }
 
         /// <summary>
-        /// A top-down recursive method to find the nearest numNeighbors of a given point.
+        /// A top-down recursive method to find the nearest numNeighbors of a given target.
         /// </summary>
         /// <param name="nodeIndex">The index of the node for the current recursion branch.</param>
-        /// <param name="target">The point whose numNeighbors we are trying to find.</param>
+        /// <param name="target">The target whose numNeighbors we are trying to find.</param>
         /// <param name="rect">The <see cref="HyperRect{T}"/> containing the possible nearest numNeighbors.</param>
         /// <param name="dimension">The current splitting dimension for this recursion branch.</param>
         /// <param name="nearestNeighbors">The <see cref="BoundedPriorityList{TElement,TPriority}"/> containing the nearest numNeighbors already discovered.</param>
@@ -271,7 +275,7 @@ namespace NearestNeighborSearch
             var dim = dimension % Dimensions;
 
             // Split our hyper-rectangle into 2 sub rectangles along the current
-            // node's point on the current dimension
+            // node's target on the current dimension
             var leftRect = rect.Clone();
             leftRect.MaxPoint[dim] = InternalPointArray[nodeIndex][dim];
 

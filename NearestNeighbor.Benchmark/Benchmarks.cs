@@ -12,11 +12,11 @@ namespace NearestNeighborSearch.Benchmark
     public class Benchmarks
     {
         // Test parameters - varying dimensions from 2D to 12D
-        [Params(2, 3,4)]//  9, 12, 15)]
+        [Params(2, 3)]  //,4)]//  9, 12, 15)]
         public int Dimensions { get; set; }
 
         // Data sizes for different scenarios
-        [Params(8000, 100000)] //, 1000000)]
+        [Params(1000000)] //, 100000)] //, 1000000)]
         public int DataSize { get; set; }
 
         // Number of neighbors to search for
@@ -30,6 +30,7 @@ namespace NearestNeighborSearch.Benchmark
         private KDTree<double, double, string> _kdTree;
         private LinearSearch<double, double, string> _linear;
         private VoxelSearch<double, string> _voxel;
+        private EnsembleSearch<double, string> _ensemble;
 
         // Metrics
         private static readonly Func<IReadOnlyList<double>, IReadOnlyList<double>, double> L2Metric = (x, y) =>
@@ -77,6 +78,7 @@ namespace NearestNeighborSearch.Benchmark
             _kdTree = KDTree.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
             _voxel = VoxelSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
             _linear = LinearSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
+            _ensemble = EnsembleSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
         }
 
         #region Nearest Neighbor Search Benchmarks
@@ -113,6 +115,18 @@ namespace NearestNeighborSearch.Benchmark
             for (int i = 0; i < _queryPoints.Length; i++)
             {
                 results[i] = _voxel.GetNearestNeighbors(_queryPoints[i], NeighborCount).ToArray();
+            }
+            return results;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory("GetNearestNeighbors")]
+        public (IReadOnlyList<double>, string)[][] Ensemble_NearestNeighbors()
+        {
+            var results = new (IReadOnlyList<double>, string)[_queryPoints.Length][];
+            for (int i = 0; i < _queryPoints.Length; i++)
+            {
+                results[i] = _ensemble.GetNearestNeighbors(_queryPoints[i], NeighborCount).ToArray();
             }
             return results;
         }
@@ -159,6 +173,20 @@ namespace NearestNeighborSearch.Benchmark
             for (int i = 0; i < results.Length; i++)
             {
                 results[i] = _voxel.GetNeighborsInRadius(_queryPoints[i], radius).ToArray();
+            }
+            return results;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory("RadialSearch")]
+        public (IReadOnlyList<double>, string)[][] Ensuemble_RadialSearch()
+        {
+            double radius = 150.0; // Fixed radius for comparison
+            var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
+
+            for (int i = 0; i < results.Length; i++)
+            {
+                results[i] = _ensemble.GetNeighborsInRadius(_queryPoints[i], radius).ToArray();
             }
             return results;
         }
@@ -245,6 +273,18 @@ namespace NearestNeighborSearch.Benchmark
             for (int i = 0; i < results.Length; i++)
             {
                 results[i] = _voxel.GetNearestNeighbor(_queryPoints[i]);
+            }
+            return results;
+        }
+        [Benchmark]
+        [BenchmarkCategory("SingleBestSearch")]
+        public (IReadOnlyList<double>, string)[] Ensemble_SingleSearch()
+        {
+            var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)];
+
+            for (int i = 0; i < results.Length; i++)
+            {
+                results[i] = _ensemble.GetNearestNeighbor(_queryPoints[i]);
             }
             return results;
         }

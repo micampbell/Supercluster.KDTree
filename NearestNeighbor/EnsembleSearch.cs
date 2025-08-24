@@ -4,7 +4,8 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading; // added for threading constructs
+using System.Threading;
+using System.Threading.Tasks; // added for threading constructs
 
 namespace NearestNeighborSearch
 {
@@ -73,75 +74,34 @@ namespace NearestNeighborSearch
         /// <inheritdoc/>
         public override (IReadOnlyList<TDimension>, TNode) GetNearestNeighbor(IReadOnlyList<TDimension> target)
         {
-            // Run all three strategies in parallel and return the first one that completes.
-            // Requirement: use WaitOne to obtain the earliest result.
-            var done = new ManualResetEvent(false);
-            (IReadOnlyList<TDimension>, TNode) result = default;
-            int resultSet = 0; // 0 = not set
+            Task<(IReadOnlyList<TDimension>, TNode)> kdTask = Task.Run(() => kdTreeSearch.GetNearestNeighbor(target));
+            //Task<(IReadOnlyList<TDimension>, TNode)> linearTask = Task.Run(() => linearSearch.GetNearestNeighbor(target));
+            Task<(IReadOnlyList<TDimension>, TNode)> voxelTask = Task.Run(() => voxelSearch.GetNearestNeighbor(target));
 
-            void TrySetResult((IReadOnlyList<TDimension>, TNode) r)
-            {
-                if (Interlocked.CompareExchange(ref resultSet, 1, 0) == 0)
-                {
-                    result = r;
-                    done.Set();
-                }
-            }
+            //int index = Task.WaitAny(kdTask, linearTask, voxelTask);
+            //var result = index == 0 ? kdTask.Result : index == 1 ? linearTask.Result : voxelTask.Result;
+            int index = Task.WaitAny(kdTask, voxelTask);
+            var result = index == 0 ? kdTask.Result : voxelTask.Result;
 
-            // Start each search on the ThreadPool
-            ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try { TrySetResult(kdTreeSearch.GetNearestNeighbor(target)); } catch { /* ignore */ }
-            });
-            ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try { TrySetResult(linearSearch.GetNearestNeighbor(target)); } catch { /* ignore */ }
-            });
-            ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try { TrySetResult(voxelSearch.GetNearestNeighbor(target)); } catch { /* ignore */ }
-            });
-
-            // Wait for the first completed result.
-            done.WaitOne();
             return result;
         }
         /// <inheritdoc/>
         public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNearestNeighbors(IReadOnlyList<TDimension> target, int numNeighbors)
         {
-            // Run searches concurrently, streaming the full result set of whichever finishes first, then the others.
-            var events = new[] { new ManualResetEvent(false), new ManualResetEvent(false), new ManualResetEvent(false) };
-            var results = new List<(IReadOnlyList<TDimension>, TNode)>[3];
+            if (numNeighbors <= 0 || numNeighbors >= Count)
+                return GetAllData();
+            if (numNeighbors == 1)
+                return [GetNearestNeighbor(target)];
+            Task<(IReadOnlyList<TDimension>, TNode)[]> kdTask = Task.Run(() => kdTreeSearch.GetNearestNeighbors(target, numNeighbors).ToArray());
+            //Task<(IReadOnlyList<TDimension>, TNode)[]> linearTask = Task.Run(() => linearSearch.GetNearestNeighbors(target, numNeighbors).ToArray());
+            Task<(IReadOnlyList<TDimension>, TNode)[]> voxelTask = Task.Run(() => voxelSearch.GetNearestNeighbors(target, numNeighbors).ToArray());
 
-            ThreadPool.QueueUserWorkItem(_ => { try { results[0] = kdTreeSearch.GetNearestNeighbors(target, numNeighbors).ToList(); } catch { results[0] = new(); } finally { events[0].Set(); } });
-            ThreadPool.QueueUserWorkItem(_ => { try { results[1] = linearSearch.GetNearestNeighbors(target, numNeighbors).ToList(); } catch { results[1] = new(); } finally { events[1].Set(); } });
-            ThreadPool.QueueUserWorkItem(_ => { try { results[2] = voxelSearch.GetNearestNeighbors(target, numNeighbors).ToList(); } catch { results[2] = new(); } finally { events[2].Set(); } });
+            //int index = Task.WaitAny(kdTask, linearTask, voxelTask);
+            //var result = index == 0 ? kdTask.Result : index == 1 ? linearTask.Result : voxelTask.Result;
+            int index = Task.WaitAny(kdTask, voxelTask);
+            var result = index == 0 ? kdTask.Result : voxelTask.Result;
 
-            var remainingEventHandles = new List<WaitHandle>(events);
-            var processed = new bool[3];
-            var comparer = new PointComparer();
-            var seen = new HashSet<IReadOnlyList<TDimension>>(comparer);
-
-            while (remainingEventHandles.Count > 0)
-            {
-                int signaledIndex = WaitHandle.WaitAny(remainingEventHandles.ToArray());
-                var handle = remainingEventHandles[signaledIndex];
-                int originalIndex = Array.IndexOf(events, handle);
-                if (originalIndex >= 0 && !processed[originalIndex])
-                {
-                    processed[originalIndex] = true;
-                    if (results[originalIndex] != null)
-                    {
-                        foreach (var tuple in results[originalIndex])
-                        {
-                            if (tuple.Item1 != null && seen.Add(tuple.Item1))
-                                yield return tuple;
-                        }
-                    }
-                }
-                // Remove this handle so future WaitAny ignores it.
-                remainingEventHandles.RemoveAt(signaledIndex);
-            }
+            return result;
         }
 
 
@@ -149,63 +109,16 @@ namespace NearestNeighborSearch
         public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNeighborsInRadius(IReadOnlyList<TDimension> target, TDimension radius,
             int numNeighbors = -1)
         {
-            var events = new[] { new ManualResetEvent(false), new ManualResetEvent(false), new ManualResetEvent(false) };
-            var results = new List<(IReadOnlyList<TDimension>, TNode)>[3];
+            Task<(IReadOnlyList<TDimension>, TNode)[]> kdTask = Task.Run(() => kdTreeSearch.GetNeighborsInRadius(target,radius, numNeighbors).ToArray());
+            //Task<(IReadOnlyList<TDimension>, TNode)[]> linearTask = Task.Run(() => linearSearch.GetNeighborsInRadius(target, radius, numNeighbors).ToArray());
+            Task<(IReadOnlyList<TDimension>, TNode)[]> voxelTask = Task.Run(() => voxelSearch.GetNeighborsInRadius(target, radius, numNeighbors).ToArray());
 
-            ThreadPool.QueueUserWorkItem(_ => { try { results[0] = kdTreeSearch.GetNeighborsInRadius(target, radius, numNeighbors).ToList(); } catch { results[0] = new(); } finally { events[0].Set(); } });
-            ThreadPool.QueueUserWorkItem(_ => { try { results[1] = linearSearch.GetNeighborsInRadius(target, radius, numNeighbors).ToList(); } catch { results[1] = new(); } finally { events[1].Set(); } });
-            ThreadPool.QueueUserWorkItem(_ => { try { results[2] = voxelSearch.GetNeighborsInRadius(target, radius, numNeighbors).ToList(); } catch { results[2] = new(); } finally { events[2].Set(); } });
+            //int index = Task.WaitAny(kdTask, linearTask, voxelTask);
+            //var result = index == 0 ? kdTask.Result : index == 1 ? linearTask.Result : voxelTask.Result;
+            int index = Task.WaitAny(kdTask,  voxelTask);
+            var result = index == 0 ? kdTask.Result : voxelTask.Result;
 
-            var remainingEventHandles = new List<WaitHandle>(events);
-            var processed = new bool[3];
-            var comparer = new PointComparer();
-            var seen = new HashSet<IReadOnlyList<TDimension>>(comparer);
-
-            while (remainingEventHandles.Count > 0)
-            {
-                int signaledIndex = WaitHandle.WaitAny(remainingEventHandles.ToArray());
-                var handle = remainingEventHandles[signaledIndex];
-                int originalIndex = Array.IndexOf(events, handle);
-                if (originalIndex >= 0 && !processed[originalIndex])
-                {
-                    processed[originalIndex] = true;
-                    if (results[originalIndex] != null)
-                    {
-                        foreach (var tuple in results[originalIndex])
-                        {
-                            if (tuple.Item1 != null && seen.Add(tuple.Item1))
-                                yield return tuple;
-                        }
-                    }
-                }
-                remainingEventHandles.RemoveAt(signaledIndex);
-            }
+            return result;
         }
-
-        // Equality comparer for point coordinate lists to avoid duplicate yields.
-        private sealed class PointComparer : IEqualityComparer<IReadOnlyList<TDimension>>
-        {
-            public bool Equals(IReadOnlyList<TDimension>? x, IReadOnlyList<TDimension>? y)
-            {
-                if (ReferenceEquals(x, y)) return true;
-                if (x is null || y is null || x.Count != y.Count) return false;
-                for (int i = 0; i < x.Count; i++)
-                {
-                    if (!x[i].Equals(y[i])) return false;
-                }
-                return true;
-            }
-            public int GetHashCode(IReadOnlyList<TDimension> obj)
-            {
-                unchecked
-                {
-                    int hash = 17;
-                    for (int i = 0; i < obj.Count; i++)
-                        hash = hash * 31 + obj[i].GetHashCode();
-                    return hash;
-                }
-            }
-        }
-
     }
 }

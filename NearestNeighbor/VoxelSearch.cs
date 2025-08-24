@@ -365,6 +365,10 @@ namespace NearestNeighborSearch
         /// <inheritdoc/>
         public override IEnumerable<(IReadOnlyList<TDimension>, TNode)> GetNearestNeighbors(IReadOnlyList<TDimension> target, int numNeighbors)
         {
+            if (numNeighbors <= 0 || numNeighbors >= Count)
+                return GetAllData();
+            if (numNeighbors == 1)
+                return [GetNearestNeighbor(target)];
             var closestDistances = new TDimension[numNeighbors];
             var closestPoints = new (IReadOnlyList<TDimension>, TNode)[numNeighbors];
             var cutOffDist = TDimension.MaxValue;
@@ -437,11 +441,16 @@ namespace NearestNeighborSearch
             int numNeighbors = -1)
         {
             var maxLayer = 1 + (int)Math.Ceiling(double.CreateChecked(radius * inversePixelSideLength));
+            if (maxLayer > NumVoxelsInDim.Max())
+            {
+                if (numNeighbors <= 0) return GetAllData();
+                else return GetNearestNeighbors(target, numNeighbors);
+            }
             maxLayer *= maxLayer; // radius squared
             maxLayer -= 1;
             if (Metric.GetMethodInfo().Name == nameof(CommonDistanceMetrics.EuclideanDistance))
                 radius *= radius; // we are using squared Euclidean distance, so square the radius.
-            if (numNeighbors <= 0) return UnlimitedRadialSearch(target, radius, maxLayer);
+            if (numNeighbors <= 0 || numNeighbors >= Count) return UnlimitedRadialSearch(target, radius, maxLayer);
 
             var closestDistances = new TDimension[numNeighbors];
             var closestPoints = new (IReadOnlyList<TDimension>, TNode)[numNeighbors];
