@@ -16,11 +16,11 @@ namespace NearestNeighborSearch.Benchmark
         public int Dimensions { get; set; }
 
         // Data sizes for different scenarios
-        [Params(1000000)] //, 100000)] //, 1000000)]
+        [Params(8000, 40000, 2000000, 1000000)]
         public int DataSize { get; set; }
 
         // Number of neighbors to search for
-        [Params(10,100)] //, 300)] 
+        [Params(10, 100, 300)] 
         public int NeighborCount { get; set; }
 
         // Test data
@@ -77,8 +77,8 @@ namespace NearestNeighborSearch.Benchmark
             // Pre-build trees for search benchmarks
             _kdTree = KDTree.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
             _voxel = VoxelSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
-            _linear = LinearSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
-            _ensemble = EnsembleSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
+            //_linear = LinearSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
+            //_ensemble = EnsembleSearch.Create(_points, _nodes, DistanceMetrics.EuclideanDistance);
         }
 
         #region Nearest Neighbor Search Benchmarks
@@ -119,17 +119,17 @@ namespace NearestNeighborSearch.Benchmark
             return results;
         }
 
-        [Benchmark]
-        [BenchmarkCategory("GetNearestNeighbors")]
-        public (IReadOnlyList<double>, string)[][] Ensemble_NearestNeighbors()
-        {
-            var results = new (IReadOnlyList<double>, string)[_queryPoints.Length][];
-            for (int i = 0; i < _queryPoints.Length; i++)
-            {
-                results[i] = _ensemble.GetNearestNeighbors(_queryPoints[i], NeighborCount).ToArray();
-            }
-            return results;
-        }
+        //[Benchmark]
+        //[BenchmarkCategory("GetNearestNeighbors")]
+        //public (IReadOnlyList<double>, string)[][] Ensemble_NearestNeighbors()
+        //{
+        //    var results = new (IReadOnlyList<double>, string)[_queryPoints.Length][];
+        //    for (int i = 0; i < _queryPoints.Length; i++)
+        //    {
+        //        results[i] = _ensemble.GetNearestNeighbors(_queryPoints[i], NeighborCount).ToArray();
+        //    }
+        //    return results;
+        //}
 
         #endregion
 
@@ -177,19 +177,19 @@ namespace NearestNeighborSearch.Benchmark
             return results;
         }
 
-        [Benchmark]
-        [BenchmarkCategory("RadialSearch")]
-        public (IReadOnlyList<double>, string)[][] Ensuemble_RadialSearch()
-        {
-            double radius = 150.0; // Fixed radius for comparison
-            var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
+        //[Benchmark]
+        //[BenchmarkCategory("RadialSearch")]
+        //public (IReadOnlyList<double>, string)[][] Ensemble_RadialSearch()
+        //{
+        //    double radius = 150.0; // Fixed radius for comparison
+        //    var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)][];
 
-            for (int i = 0; i < results.Length; i++)
-            {
-                results[i] = _ensemble.GetNeighborsInRadius(_queryPoints[i], radius).ToArray();
-            }
-            return results;
-        }
+        //    for (int i = 0; i < results.Length; i++)
+        //    {
+        //        results[i] = _ensemble.GetNeighborsInRadius(_queryPoints[i], radius).ToArray();
+        //    }
+        //    return results;
+        //}
 
         #endregion
         #region Both Radial and Number Search Benchmarks
@@ -276,18 +276,18 @@ namespace NearestNeighborSearch.Benchmark
             }
             return results;
         }
-        [Benchmark]
-        [BenchmarkCategory("SingleBestSearch")]
-        public (IReadOnlyList<double>, string)[] Ensemble_SingleSearch()
-        {
-            var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)];
+        //[Benchmark]
+        //[BenchmarkCategory("SingleBestSearch")]
+        //public (IReadOnlyList<double>, string)[] Ensemble_SingleSearch()
+        //{
+        //    var results = new (IReadOnlyList<double>, string)[Math.Min(50, _queryPoints.Length)];
 
-            for (int i = 0; i < results.Length; i++)
-            {
-                results[i] = _ensemble.GetNearestNeighbor(_queryPoints[i]);
-            }
-            return results;
-        }
+        //    for (int i = 0; i < results.Length; i++)
+        //    {
+        //        results[i] = _ensemble.GetNearestNeighbor(_queryPoints[i]);
+        //    }
+        //    return results;
+        //}
 
         #endregion
 

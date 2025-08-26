@@ -21,7 +21,7 @@ namespace NearestNeighborSearch
     public class VoxelSearch<TDimension, TNode> : SearchMethod<TDimension, TDimension, TNode>
         where TDimension : IComparable<TDimension>, IMinMaxValue<TDimension>, INumber<TDimension>
     {
-        const int MaxNumberOfVoxels = 1000000;
+        const int MaxNumberOfVoxels = 100000;
 
         private TDimension[] minima;
         private TDimension[] maxima;
